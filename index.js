@@ -1,21 +1,23 @@
-const express = require('express')
-const app = express()
-const PORT = 4000
+import express from 'express';
+import { createClient } from '@supabase/supabase-js';
 
+const app = express();
 
-app.get('/home', (req, res) => {
-    res.status(200).json('Welcome, your app is working well');
-})
+// enable JSON body parser
+app.use(express.json());
 
+// Create a single supabase client for interacting with your database
+const supabaseUrl = 'your-supabase-url';
+const supabaseKey = 'your-supabase-key';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+app.get('/', async (req, res) => {
+    let { data, error } = await supabase
+        .from('your-table')
+        .select('*')
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
 });
 
-const userRouter = require('./routes/user.router')
-
-app.use("/api", userRouter)
-
-app.listen(process.env.PORT, () => console.log("Server is running on port 5000"))
-// Export the Express API
-module.exports = app
+export default app;
