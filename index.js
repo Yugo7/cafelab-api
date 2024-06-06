@@ -1,10 +1,13 @@
-
+import cors from 'cors';
 import express from 'express';
 import productsRouter from './routes/products.router.js';
 import ordersRouter from './routes/orders.router.js';
 import eventsRouter from './routes/events.router.js';
 
 const app = express();
+
+// Enable CORS
+app.use(cors());
 
 // enable JSON body parser
 app.use(express.json());
