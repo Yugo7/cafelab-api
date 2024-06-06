@@ -1,7 +1,8 @@
+
 import express from 'express';
-import productsRouter from './routes/products.router';
-import ordersRouter from './routes/orders.router';
-import eventsRouter from './routes/events.router';
+import productsRouter from './routes/products.router.js';
+import ordersRouter from './routes/orders.router.js';
+import eventsRouter from './routes/events.router.js';
 
 const app = express();
 
@@ -17,6 +18,11 @@ app.use('/events', eventsRouter);
 
 app.get('/', async (req, res) => {
     res.send('Hello World!');
+});
+
+const PORT = 3003;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
 
 export default app;

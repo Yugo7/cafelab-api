@@ -1,11 +1,13 @@
+// events.router.js
+import '../config.cjs';
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 
 const router = express.Router();
 
 // Create a single supabase client for interacting with your database
-const supabaseUrl = 'https://sbkrffeyngcjbzrwhvdq.supabase.co';
-const supabaseKey = 'your-supabase-key';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Create
