@@ -18,6 +18,8 @@ app.use('/products', productsRouter);
 app.use('/orders', ordersRouter);
 // Use events router
 app.use('/events', eventsRouter);
+// Use stripe router
+app.use('/sp', eventsRouter);
 
 app.get('/', async (req, res) => {
     res.send('Hello World!');
