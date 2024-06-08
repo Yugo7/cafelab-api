@@ -10,6 +10,8 @@ router.post("/create-customer", async (req, res) => {
         email: email,
         name: name,
     });
+    console.log('Payload:', req.body);
+    console.log('Result:', customer);
     res.send(customer);
 });
 
