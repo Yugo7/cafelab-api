@@ -1,8 +1,8 @@
 import express from 'express';
 
 const router = express.Router();
-
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 router.post("/create-customer", async (req, res) => {
     const { email, name } = req.body;
@@ -74,4 +74,4 @@ router.post("/create-subscription", async (req, res) => {
     res.send(subscription);
 });
 
-module.exports = router;
+export default router;

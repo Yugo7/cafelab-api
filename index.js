@@ -3,6 +3,8 @@ import express from 'express';
 import productsRouter from './routes/products.router.js';
 import ordersRouter from './routes/orders.router.js';
 import eventsRouter from './routes/events.router.js';
+import stripeRouter from './routes/stripe.router.js';
+import menuRouter from './routes/menu.router.js';
 
 const app = express();
 
@@ -19,7 +21,9 @@ app.use('/orders', ordersRouter);
 // Use events router
 app.use('/events', eventsRouter);
 // Use stripe router
-app.use('/sp', eventsRouter);
+app.use('/menu', menuRouter);
+// Use stripe router
+app.use('/sp', stripeRouter);
 
 app.get('/', async (req, res) => {
     res.send('Hello World!');
