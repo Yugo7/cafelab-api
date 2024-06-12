@@ -5,6 +5,7 @@ import ordersRouter from './routes/orders.router.js';
 import eventsRouter from './routes/events.router.js';
 import stripeRouter from './routes/stripe.router.js';
 import menuRouter from './routes/menu.router.js';
+import contactsRouter from './routes/contact.router.js';
 
 const app = express();
 
@@ -20,8 +21,10 @@ app.use('/products', productsRouter);
 app.use('/orders', ordersRouter);
 // Use events router
 app.use('/events', eventsRouter);
-// Use stripe router
+// Use menu router
 app.use('/menu', menuRouter);
+// Use contact router
+app.use('/contacts', contactsRouter);
 // Use stripe router
 app.use('/sp', stripeRouter);
 
