@@ -42,6 +42,13 @@ router.post('/create-subscription', async (req, res) => {
 router.post("/create-checkout-session", async (req, res) => {
 
     console.log('session body:', req.body.subscription);
+    const date = new Date();
+    date.setMonth(date.getMonth() + 1);
+    date.setDate(25);
+    date.setHours(0, 0, 0, 0); // Set the time to 00:00:00
+
+    const unixTimestamp = Math.floor(date.getTime() / 1000);
+
     const { priceId, preco } = req.body.subscription;
     const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
@@ -53,7 +60,8 @@ router.post("/create-checkout-session", async (req, res) => {
         ],
         success_url: 'https://cafelab-fe.vercel.app/success',
         cancel_url: 'https://cafelab-fe.vercel.app/cancel',
-        billing_address_collection: 'required', // This line requires customers to provide their billing address
+        subscription_data: { billing_cycle_anchor: unixTimestamp },
+        billing_address_collection: 'required',
         shipping_address_collection: {
             allowed_countries: ['PT']
         },

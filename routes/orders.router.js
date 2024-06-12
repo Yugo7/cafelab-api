@@ -27,11 +27,12 @@ router.get('/', async (req, res) => {
 });
 
 // Read
-router.get('/:id', async (req, res) => {
+router.get('/:userid', async (req, res) => {
+    console.log('userid:', req.params.userid);
     const { data, error } = await supabase
         .from('order')
         .select('*')
-        .eq('id', req.params.id);
+        .eq('user_id', req.params.userid);
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(data);
 });
