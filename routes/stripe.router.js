@@ -6,6 +6,7 @@ import {createClient} from "@supabase/supabase-js";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Create a single supabase client for interacting with your database
+const frontendUrl = 'https://cafelab.pt/';
 const supabaseUrl = 'https://sbkrffeyngcjbzrwhvdq.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNia3JmZmV5bmdjamJ6cndodmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMxOTM2MjgsImV4cCI6MjAyODc2OTYyOH0.COR1kdIkfK19CRDIrdwmI2CQD8VXdnF46cc0Ql8ofyU';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -58,8 +59,8 @@ router.post("/create-checkout-session", async (req, res) => {
                 quantity: 1
             },
         ],
-        success_url: 'https://cafelab-fe.vercel.app/success',
-        cancel_url: 'https://cafelab-fe.vercel.app/cancel',
+        success_url: frontendUrl + 'success',
+        cancel_url: frontendUrl + 'cancel',
         //subscription_data: { billing_cycle_anchor: unixTimestamp },
         billing_address_collection: 'required',
         shipping_address_collection: {
