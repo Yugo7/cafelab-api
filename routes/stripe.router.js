@@ -43,7 +43,7 @@ router.post("/create-checkout-session", async (req, res) => {
 
     console.log('session body:', req.body.subscription);
     const date = new Date();
-    date.setMonth(date.getMonth() + 1);
+    date.setMonth(date.getMonth() + 7);
     date.setDate(25);
     date.setHours(0, 0, 0, 0); // Set the time to 00:00:00
 
@@ -60,7 +60,7 @@ router.post("/create-checkout-session", async (req, res) => {
         ],
         success_url: 'https://cafelab-fe.vercel.app/success',
         cancel_url: 'https://cafelab-fe.vercel.app/cancel',
-        subscription_data: { billing_cycle_anchor: unixTimestamp },
+        //subscription_data: { billing_cycle_anchor: unixTimestamp },
         billing_address_collection: 'required',
         shipping_address_collection: {
             allowed_countries: ['PT']
