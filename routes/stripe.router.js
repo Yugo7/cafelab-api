@@ -1,8 +1,9 @@
 import express from 'express';
-
-const router = express.Router();
 import Stripe from 'stripe';
 import {createClient} from "@supabase/supabase-js";
+
+const router = express.Router();
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Create a single supabase client for interacting with your database
@@ -12,7 +13,7 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 router.post("/create-customer", async (req, res) => {
-    const { email, name } = req.body;
+    const {email, name} = req.body;
     const customer = await stripe.customers.create({
         email: email,
         name: name,
@@ -21,9 +22,9 @@ router.post("/create-customer", async (req, res) => {
 });
 
 router.post('/create-subscription', async (req, res) => {
-    const { email, card } = req.body;
+    const {email, card} = req.body;
 
-    const customer = await stripe.customers.create({ email });
+    const customer = await stripe.customers.create({email});
 
     const paymentMethod = await stripe.paymentMethods.create({
         type: 'card',
@@ -33,11 +34,11 @@ router.post('/create-subscription', async (req, res) => {
 
     const subscription = await stripe.subscriptions.create({
         customer: customer.id,
-        items: [{ price: 'price_1PB4tGRqqMn2mwDSTS2p1BJq' }],
+        items: [{price: 'price_1PB4tGRqqMn2mwDSTS2p1BJq'}],
         default_payment_method: paymentMethod.id,
     });
 
-    res.json({ subscription: subscription });
+    res.json({subscription: subscription});
 });
 
 router.post("/create-checkout-session", async (req, res) => {
@@ -50,7 +51,7 @@ router.post("/create-checkout-session", async (req, res) => {
 
     const unixTimestamp = Math.floor(date.getTime() / 1000);
 
-    const { priceId, preco } = req.body.subscription;
+    const {priceId, preco} = req.body.subscription;
     const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         line_items: [
@@ -70,7 +71,7 @@ router.post("/create-checkout-session", async (req, res) => {
     });
 
     // Create an order in your database with the session data
-    const { data, error } = await supabase
+    const {data, error} = await supabase
         .from('order')
         .insert([
             {
@@ -86,7 +87,49 @@ router.post("/create-checkout-session", async (req, res) => {
     }
 
     console.log('session:', session);
-    res.json({ session });
+    res.json({session});
+});
+
+
+router.post("/create-checkout", async (req, res) => {
+
+    const session = await stripe.checkout.sessions.create({
+        success_url: frontendUrl + 'success',
+        cancel_url: frontendUrl + 'cancel',
+        line_items: [
+            {
+                price: 'price_1PB4qJRqqMn2mwDSRxzGdiql',
+                quantity: 2,
+            },
+        ],
+        mode: 'payment',
+    });
+
+    res.json({session});
+});
+
+router.post("/webhook", async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.log(`⚠️  Webhook signature verification failed.`);
+        return res.sendStatus(400);
+    }
+
+    // Handle the event
+    switch (event.type) {
+        case 'checkout.session.completed':
+            const session = event.data.object;
+            console.log(`🔔  Payment for ${session.amount_total} was successful!`);
+            break;
+        default:
+            console.log(`🔔  Unhandled event type: ${event.type}`);
+    }
+
+    res.sendStatus(200);
 });
 
 export default router;
