@@ -86,7 +86,7 @@ router.post("/create-checkout-session", async (req, res) => {
                 products: subscription,
                 payment_status: 'PENDING',
                 total: preco,
-                session_id: session.id
+                session_id: session.id,
             }
         ]);
 
@@ -101,7 +101,7 @@ router.post("/create-checkout-session", async (req, res) => {
 
 router.post("/create-checkout", async (req, res) => {
 
-    console.log(req.body.cart.items)
+    console.log(req.body)
     const cartItems = req.body.cart.items; // Extract the list of product IDs from the request body
     const allProducts = await getProducts();
 
@@ -147,6 +147,17 @@ router.post("/create-checkout", async (req, res) => {
         ],
         locale: 'pt'
     });
+
+    const {data, error} = await supabase
+        .from('order')
+        .insert([
+            {
+                products: cartItems,
+                payment_status: 'PENDING',
+                total: session.amount_total / 100,
+                session_id: session.id
+            }
+        ]);
 
     res.json({session});
 });
