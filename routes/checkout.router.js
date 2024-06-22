@@ -23,7 +23,7 @@ const session = await stripe.checkout.sessions.create({
     success_url: 'https://example.com/success',
     line_items: [
         {
-            price: 'price_1MotwRLkdIwHu7ixYcPLm5uZ',
+            price: 'price_1PUNakRqqMn2mwDSgZgrxSxz',
             quantity: 2,
         },
     ],

@@ -1,17 +1,17 @@
 import express from 'express';
 import Stripe from 'stripe';
 import {createClient} from "@supabase/supabase-js";
-import {getSubscriptionById} from "../services/products.service.js";
+import {getProducts, getSubscriptionById} from "../services/products.service.js";
 
 const router = express.Router();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Create a single supabase client for interacting with your database
 const frontendUrl = 'https://cafelab.pt/';
-const supabaseUrl = 'https://sbkrffeyngcjbzrwhvdq.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNia3JmZmV5bmdjamJ6cndodmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMxOTM2MjgsImV4cCI6MjAyODc2OTYyOH0.COR1kdIkfK19CRDIrdwmI2CQD8VXdnF46cc0Ql8ofyU';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
 
 router.post("/create-customer", async (req, res) => {
     const {email, name} = req.body;
@@ -101,16 +101,51 @@ router.post("/create-checkout-session", async (req, res) => {
 
 router.post("/create-checkout", async (req, res) => {
 
+    console.log(req.body.cart.items)
+    const cartItems = req.body.cart.items; // Extract the list of product IDs from the request body
+    const allProducts = await getProducts();
+
+    const productDetails = cartItems.map((product) => {
+        const productItem = allProducts.find(p => p.id === product.id);
+        return {
+            price: productItem.price_id,
+            quantity: product.quantity
+        };
+    });
+
     const session = await stripe.checkout.sessions.create({
         success_url: frontendUrl + 'success',
         cancel_url: frontendUrl + 'cancel',
-        line_items: [
+        line_items: productDetails,
+        mode: 'payment',
+        billing_address_collection: 'required',
+        shipping_address_collection: {
+            allowed_countries: ['PT']
+        },
+
+        shipping_options: [
             {
-                price: 'price_1PB4qJRqqMn2mwDSRxzGdiql',
-                quantity: 2,
+                shipping_rate_data: {
+                    type: 'fixed_amount',
+                    fixed_amount: {
+                        amount: 500,
+                        currency: 'eur',
+                    },
+                    display_name: 'Envio por CTT',
+                    delivery_estimate: {
+                        minimum: {
+                            unit: 'business_day',
+                            value: 5,
+                        },
+                        maximum: {
+                            unit: 'business_day',
+                            value: 10,
+                        },
+                    },
+                },
             },
         ],
-        mode: 'payment',
+        locale: 'pt'
     });
 
     res.json({session});

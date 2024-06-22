@@ -11,6 +11,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Create
 router.post('/', async (req, res) => {
     console.log("webhooks working: " + req.body);
+
+    res.json("ok");
 });
 
 export default router;

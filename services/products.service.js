@@ -13,6 +13,14 @@ export async function getSubscriptionById(id) {
         .eq('id', id);
     if (error) throw error;
 
-    console.log('subscription:', data[0]);
     return data[0];
+}
+
+export async function getProducts() {
+    const { data, error } = await supabase
+        .from('products')
+        .select('*')
+    if (error) throw error;
+
+    return data;
 }
