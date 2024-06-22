@@ -1,6 +1,7 @@
 import express from 'express';
 import Stripe from 'stripe';
 import {createClient} from "@supabase/supabase-js";
+import {getSubscriptionById} from "../services/products.service.js";
 
 const router = express.Router();
 
@@ -43,6 +44,7 @@ router.post('/create-subscription', async (req, res) => {
 
 router.post("/create-checkout-session", async (req, res) => {
 
+
     console.log('session body:', req.body.subscription);
     const date = new Date();
     date.setMonth(date.getMonth() + 7);
@@ -51,12 +53,15 @@ router.post("/create-checkout-session", async (req, res) => {
 
     const unixTimestamp = Math.floor(date.getTime() / 1000);
 
-    const {priceId, preco} = req.body.subscription;
+    const {id, variety, coffee, payment} = req.body.subscription;
+    const subscription = await getSubscriptionById(id);
+
+
     const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         line_items: [
             {
-                price: priceId,
+                price: subscription.price_id,
                 quantity: 1
             },
         ],
@@ -70,12 +75,15 @@ router.post("/create-checkout-session", async (req, res) => {
         locale: 'pt'
     });
 
-    // Create an order in your database with the session data
+    subscription.variety = variety;
+    subscription.coffee = coffee;
+
+    let preco = subscription.price * payment;
     const {data, error} = await supabase
         .from('order')
         .insert([
             {
-                products: req.body.subscription,
+                products: subscription,
                 payment_status: 'PENDING',
                 total: preco,
                 session_id: session.id
