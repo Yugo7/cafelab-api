@@ -2,6 +2,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import {createClient} from "@supabase/supabase-js";
 import {getProducts, getSubscriptionById} from "../services/products.service.js";
+import {createStripeCustomer} from "../services/stripe.service.js";
 
 const router = express.Router();
 
@@ -14,11 +15,9 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 router.post("/create-customer", async (req, res) => {
-    const {email, name} = req.body;
-    const customer = await stripe.customers.create({
-        email: email,
-        name: name,
-    });
+    const customer = req.body;
+    console.log('customer:', customer);
+    createStripeCustomer(customer.email, customer.name)
     res.send(customer);
 });
 

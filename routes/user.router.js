@@ -1,12 +1,15 @@
-const express = require("express")
+import express from 'express';
+
 const router = express.Router()
+import {createCustomer} from "../services/user.service.js";
 
-const userController = require('../controller/user.controller')
 
-router.get("/", userController.getAll)
-router.get("/:id", userController.getById)
-router.post("/", userController.create)
-router.put("/:id", userController.updateById)
-router.delete("/:id", userController.deleteById)
+// Create
+router.post('/', async (req, res) => {
+    const user = req.body;
+    const {data, error} = createCustomer(user)
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
+});
 
-module.exports = router
+export default router;
