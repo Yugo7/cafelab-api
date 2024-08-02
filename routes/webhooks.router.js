@@ -12,6 +12,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 router.post('/', async (req, res) => {
     console.log("webhooks working: ", req.body);
 
+    
+
     res.json("ok");
 });
 

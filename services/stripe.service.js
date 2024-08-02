@@ -7,7 +7,7 @@ export async function createStripeCustomer(email, name) {
     console.log('customerSearchRes:', customerSearchRes);
 
     if (customerSearchRes.data.length > 0) {
-        return customerSearchRes[0];
+        return customerSearchRes.data[0];
     }
     else {
     const customer = await stripe.customers.create({

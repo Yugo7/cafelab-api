@@ -38,3 +38,14 @@ export async function createCustomer(customer) {
         throw error;
     }
 }
+
+export const changePassword = async (email) => {
+    try {
+        return await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: 'http://cafelab.pt/account/update-password',
+        })
+    } catch (e) {
+        throw e;
+    }
+};
+
