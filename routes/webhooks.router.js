@@ -15,4 +15,11 @@ router.post('/', async (req, res) => {
     res.json("ok");
 });
 
+// Create
+router.post('/test-payments', async (req, res) => {
+    console.log("test webhooks working: ", req.body);
+
+    res.json("ok");
+});
+
 export default router;
