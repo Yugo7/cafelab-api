@@ -107,7 +107,8 @@ router.post("/create-checkout", async (req, res) => {
     const productDetails = cartItems.map((product) => {
         const productItem = allProducts.find(p => p.id === product.id);
         return {
-            price: productItem.price_id,
+            // price: productItem.price_id,
+            price: 'price_1PB4qJRqqMn2mwDSRxzGdiql',
             quantity: product.quantity
         };
     });
