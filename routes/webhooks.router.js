@@ -1,5 +1,6 @@
 import express from "express";
 import {createClient} from "@supabase/supabase-js";
+import { saveWebhookEvent, handleEventByType } from "../services/webhook.service.js";
 
 const router = express.Router();
 
@@ -10,9 +11,18 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Create
 router.post('/', async (req, res) => {
-    console.log("webhooks working: ", req.body);
+    const { id, data: info, created, type } = req.body;
+    const createdAt = new Date(created * 1000).toISOString();
 
-    res.json("ok");
+    const {data, error} = await saveWebhookEvent({ id, info, createdAt, type });
+    
+    if (error) {
+        console.log("error: ", error); 
+        res.status(500).json("error");  
+    }
+
+    const result = await handleEventByType(req.body)
+    res.json(result);
 });
 
 // Create

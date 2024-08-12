@@ -113,6 +113,18 @@ router.post("/create-checkout", async (req, res) => {
         };
     });
 
+    
+    const {data, error} = await supabase
+        .from('order')
+        .insert([
+            {
+                products: cartItems,
+                payment_status: 'CREATED',
+                total: 0,
+            }
+        ])
+        .select();
+
     const session = await stripe.checkout.sessions.create({
         success_url: frontendUrl + 'success',
         cancel_url: frontendUrl + 'cancel',
@@ -122,7 +134,10 @@ router.post("/create-checkout", async (req, res) => {
         shipping_address_collection: {
             allowed_countries: ['PT']
         },
-
+        customer_email: "teste@tes.com",
+        metadata: {
+            order_id: data[0].id,
+        },
         shipping_options: [
             {
                 shipping_rate_data: {
@@ -148,16 +163,8 @@ router.post("/create-checkout", async (req, res) => {
         locale: 'pt'
     });
 
-    const {data, error} = await supabase
-        .from('order')
-        .insert([
-            {
-                products: cartItems,
-                payment_status: 'PENDING',
-                total: session.amount_total / 100,
-                session_id: session.id
-            }
-        ]);
+    console.log('session:', session);
+
 
     res.json({session});
 });
