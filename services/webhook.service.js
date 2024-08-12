@@ -38,7 +38,7 @@ async function handleCheckoutSessionCompleted(event) {
     const { data, error } = await supabase
         .from('order')
         .update({ 
-            payment_status: 'PAYMENT_SUCCESSFUL',
+            status: 'PAYMENT_SUCCESSFUL',
             total: event.data.object.amount_total/100,
             user_id: event.data.object.customer_details.email,
             session_id: event.data.object.id,

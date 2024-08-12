@@ -1,8 +1,8 @@
 import express from 'express';
 import Stripe from 'stripe';
-import {createClient} from "@supabase/supabase-js";
-import {getProducts, getSubscriptionById} from "../services/products.service.js";
-import {createStripeCustomer} from "../services/stripe.service.js";
+import { createClient } from "@supabase/supabase-js";
+import { getProducts, getSubscriptionById } from "../services/products.service.js";
+import { createStripeCustomer } from "../services/stripe.service.js";
 
 const router = express.Router();
 
@@ -22,9 +22,9 @@ router.post("/create-customer", async (req, res) => {
 });
 
 router.post('/create-subscription', async (req, res) => {
-    const {email, card} = req.body;
+    const { email, card } = req.body;
 
-    const customer = await stripe.customers.create({email});
+    const customer = await stripe.customers.create({ email });
 
     const paymentMethod = await stripe.paymentMethods.create({
         type: 'card',
@@ -34,11 +34,11 @@ router.post('/create-subscription', async (req, res) => {
 
     const subscription = await stripe.subscriptions.create({
         customer: customer.id,
-        items: [{price: 'price_1PB4tGRqqMn2mwDSTS2p1BJq'}],
+        items: [{ price: 'price_1PB4tGRqqMn2mwDSTS2p1BJq' }],
         default_payment_method: paymentMethod.id,
     });
 
-    res.json({subscription: subscription});
+    res.json({ subscription: subscription });
 });
 
 router.post("/create-checkout-session", async (req, res) => {
@@ -52,7 +52,7 @@ router.post("/create-checkout-session", async (req, res) => {
 
     const unixTimestamp = Math.floor(date.getTime() / 1000);
 
-    const {id, variety, coffee, payment} = req.body.subscription;
+    const { id, variety, coffee, payment } = req.body.subscription;
     const subscription = await getSubscriptionById(id);
 
 
@@ -78,12 +78,12 @@ router.post("/create-checkout-session", async (req, res) => {
     subscription.coffee = coffee;
 
     let preco = subscription.price * payment;
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from('order')
         .insert([
             {
                 products: subscription,
-                payment_status: 'PENDING',
+                status: 'PENDING',
                 total: preco,
                 session_id: session.id,
             }
@@ -94,38 +94,42 @@ router.post("/create-checkout-session", async (req, res) => {
     }
 
     console.log('session:', session);
-    res.json({session});
+    res.json({ session });
 });
 
 
 router.post("/create-checkout", async (req, res) => {
 
     console.log(req.body)
+    const user = req.body.cart.user;
     const cartItems = req.body.cart.items; // Extract the list of product IDs from the request body
     const allProducts = await getProducts();
 
     const productDetails = cartItems.map((product) => {
         const productItem = allProducts.find(p => p.id === product.id);
         return {
-            // price: productItem.price_id,
-            price: 'price_1PB4qJRqqMn2mwDSRxzGdiql',
+            price: productItem.price_id,
             quantity: product.quantity
         };
     });
 
-    
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from('order')
         .insert([
             {
                 products: cartItems,
-                payment_status: 'CREATED',
+                status: 'CREATED',
                 total: 0,
             }
         ])
         .select();
 
-    const session = await stripe.checkout.sessions.create({
+    if(error) {
+        console.log('error:', error);
+        return res.status(500).json({ error: error.message })
+    }
+
+    const sessionConfig = {
         success_url: frontendUrl + 'success',
         cancel_url: frontendUrl + 'cancel',
         line_items: productDetails,
@@ -134,7 +138,6 @@ router.post("/create-checkout", async (req, res) => {
         shipping_address_collection: {
             allowed_countries: ['PT']
         },
-        customer_email: "teste@tes.com",
         metadata: {
             order_id: data[0].id,
         },
@@ -154,19 +157,21 @@ router.post("/create-checkout", async (req, res) => {
                         },
                         maximum: {
                             unit: 'business_day',
-                            value: 10,
+                            value: 7,
                         },
                     },
                 },
             },
         ],
-        locale: 'pt'
-    });
+    };
 
-    console.log('session:', session);
+    if (user) {
+        sessionConfig.customer_email = user.username;
+    }
 
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
-    res.json({session});
+    res.json({ session });
 });
 
 router.post("/webhook", async (req, res) => {
