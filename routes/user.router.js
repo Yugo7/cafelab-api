@@ -1,12 +1,23 @@
-const express = require("express")
-const router = express.Router()
+import express from 'express';
 
-const userController = require('../controller/user.controller')
+const router = express.Router();
+import { createCustomer, changePassword } from "../services/user.service.js";
 
-router.get("/", userController.getAll)
-router.get("/:id", userController.getById)
-router.post("/", userController.create)
-router.put("/:id", userController.updateById)
-router.delete("/:id", userController.deleteById)
+// Create
+router.post('/', async (req, res) => {
+    const incoming = req.body;
+    const { data, error } = createCustomer(incoming.customer);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
+});
 
-module.exports = router
+// Change Password
+router.post('/change-password', async (req, res) => {
+    const { email } = req.body;
+    console.log('user:', email);
+    const { data, error } = await changePassword(email);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
+});
+
+export default router;

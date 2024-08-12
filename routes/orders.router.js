@@ -21,18 +21,19 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     const { data, error } = await supabase
         .from('order')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(data);
 });
 
 // Read
 router.get('/:userid', async (req, res) => {
-    console.log('userid:', req.params.userid);
     const { data, error } = await supabase
         .from('order')
         .select('*')
-        .eq('user_id', req.params.userid);
+        .eq('user_id', req.params.userid)
+        .order('created_at', { ascending: false });
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(data);
 });

@@ -7,6 +7,7 @@ import stripeRouter from './routes/stripe.router.js';
 import menuRouter from './routes/menu.router.js';
 import contactsRouter from './routes/contact.router.js';
 import emailRouter from './routes/email.router.js';
+import userRouter from './routes/user.router.js';
 import webhooksRouter from "./routes/webhooks.router.js";
 
 const app = express();
@@ -27,6 +28,8 @@ app.use('/events', eventsRouter);
 app.use('/menu', menuRouter);
 // Use contact router
 app.use('/contacts', contactsRouter);
+// Use email router
+app.use('/user', userRouter);
 // Use email router
 app.use('/email', emailRouter);
 // Use webhooks router
