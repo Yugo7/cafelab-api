@@ -9,6 +9,7 @@ import contactsRouter from './routes/contact.router.js';
 import emailRouter from './routes/email.router.js';
 import userRouter from './routes/user.router.js';
 import webhooksRouter from "./routes/webhooks.router.js";
+import subscriptionRouter from "./routes/subscription.router.js";
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use(express.json());
 app.use('/products', productsRouter);
 // Use orders router
 app.use('/orders', ordersRouter);
+// Use Subscription router
+app.use('/subscription', subscriptionRouter);
 // Use events router
 app.use('/events', eventsRouter);
 // Use menu router
