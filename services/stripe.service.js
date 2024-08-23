@@ -10,11 +10,11 @@ export async function createStripeCustomer(email, name) {
         return customerSearchRes.data[0];
     }
     else {
-    const customer = await stripe.customers.create({
+    const stripeCustomer = await stripe.customers.create({
         email: email,
         name: name,
     });
-    return customer;
+    return stripeCustomer;
     }
 }
 

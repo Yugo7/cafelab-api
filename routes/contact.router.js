@@ -10,7 +10,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Create
 router.post('/', async (req, res) => {
-    console.log('req.body:', req.body);
     const { data, error } = await supabase
         .from('contacts')
         .insert([req.body]);

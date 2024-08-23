@@ -7,8 +7,10 @@ import stripeRouter from './routes/stripe.router.js';
 import menuRouter from './routes/menu.router.js';
 import contactsRouter from './routes/contact.router.js';
 import emailRouter from './routes/email.router.js';
+import internalRoutes from './routes/internal.router.js';
 import userRouter from './routes/user.router.js';
 import webhooksRouter from "./routes/webhooks.router.js";
+import subscriptionRouter from "./routes/subscription.router.js";
 
 const app = express();
 
@@ -22,6 +24,8 @@ app.use(express.json());
 app.use('/products', productsRouter);
 // Use orders router
 app.use('/orders', ordersRouter);
+// Use Subscription router
+app.use('/subscription', subscriptionRouter);
 // Use events router
 app.use('/events', eventsRouter);
 // Use menu router
@@ -36,12 +40,14 @@ app.use('/email', emailRouter);
 app.use('/api/webhooks', webhooksRouter);
 // Use stripe router
 app.use('/sp', stripeRouter);
+// Use stripe router
+app.use('/internal', internalRoutes);
 
 app.get('/', async (req, res) => {
     res.send('Hello World!');
 });
 
-const PORT = 3000;
+const PORT = 9443;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
