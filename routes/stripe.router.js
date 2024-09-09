@@ -118,6 +118,7 @@ router.post("/create-checkout", async (req, res) => {
         .insert([
             {
                 products: cartItems,
+                variety: req.body.cart.variety,
                 status: 'CREATED',
                 total: 0,
             }

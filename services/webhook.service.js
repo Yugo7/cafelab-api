@@ -17,6 +17,10 @@ export async function saveWebhookEvent(event) {
             type: type,
         }
     ]);
+
+    if (error) {
+        console.error('Error saving webhook event:', error.message);
+    }
     return {data, error};
 }
 
