@@ -2,6 +2,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import { createClient } from "@supabase/supabase-js";
 import { getProducts, getSubscriptionById } from "../services/products.service.js";
+import {createOrder} from "../services/order.service.js";
 import { createStripeCustomer } from "../services/stripe.service.js";
 
 const router = express.Router();
@@ -48,8 +49,7 @@ router.post("/create-checkout-session", async (req, res) => {
     const date = new Date();
     date.setMonth(date.getMonth() + 7);
     date.setDate(25);
-    date.setHours(0, 0, 0, 0); // Set the time to 00:00:00
-
+    date.setHours(0, 0, 0, 0);
     const unixTimestamp = Math.floor(date.getTime() / 1000);
 
     const { id, variety, coffee, payment } = req.body.subscription;
@@ -60,12 +60,14 @@ router.post("/create-checkout-session", async (req, res) => {
         mode: 'subscription',
         line_items: [
             {
-                price: subscription.price_id,
+                price: 'price_1PQfoJRqqMn2mwDSatuNouMx',
+                //price: subscription.price_id,
                 quantity: 1
             },
         ],
         success_url: frontendUrl + 'success',
         cancel_url: frontendUrl + 'cancel',
+        allow_promotion_codes: true,
         //subscription_data: { billing_cycle_anchor: unixTimestamp },
         billing_address_collection: 'required',
         shipping_address_collection: {
@@ -102,35 +104,31 @@ router.post("/create-checkout", async (req, res) => {
 
     console.log(req.body)
     const user = req.body.cart.user;
-    const cartItems = req.body.cart.items; // Extract the list of product IDs from the request body
-    const allProducts = await getProducts();
+    const cart = req.body.cart;
 
-    const productDetails = cartItems.map((product) => {
-        const productItem = allProducts.find(p => p.id === product.id);
+    const order = await createOrder(cart, user);
+    console.log('order:', order);
+
+    const productDetails = order.products.map((product) => {
         return {
-            price: productItem.price_id,
+            price: 'price_1PB4qJRqqMn2mwDSRxzGdiql',
+            //price: productItem.price_id,
             quantity: product.quantity
         };
     });
 
-    const { data, error } = await supabase
-        .from('order')
-        .insert([
-            {
-                products: cartItems,
-                variety: req.body.cart.variety,
-                status: 'CREATED',
-                total: 0,
-            }
-        ])
-        .select();
-
-    if(error) {
-        console.log('error:', error);
-        return res.status(500).json({ error: error.message })
-    }
-
     const sessionConfig = {
+        allow_promotion_codes: true,
+        custom_fields: [
+            {
+              key: 'special_instructions',
+              label: {
+                type: 'custom',
+                custom: 'Mande-nos uma mensagem',
+              },
+              type: 'text',
+            },
+          ],
         success_url: frontendUrl + 'success',
         cancel_url: frontendUrl + 'cancel',
         line_items: productDetails,
@@ -140,7 +138,7 @@ router.post("/create-checkout", async (req, res) => {
             allowed_countries: ['PT']
         },
         metadata: {
-            order_id: data[0].id,
+            order_id: order.id,
         },
         shipping_options: [
             {
