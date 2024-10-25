@@ -22,26 +22,6 @@ router.post("/create-customer", async (req, res) => {
     res.send(customer);
 });
 
-router.post('/create-subscription', async (req, res) => {
-    const { email, card } = req.body;
-
-    const customer = await stripe.customers.create({ email });
-
-    const paymentMethod = await stripe.paymentMethods.create({
-        type: 'card',
-        card: card,
-        customer: customer.id,
-    });
-
-    const subscription = await stripe.subscriptions.create({
-        customer: customer.id,
-        items: [{ price: 'price_1PB4tGRqqMn2mwDSTS2p1BJq' }],
-        default_payment_method: paymentMethod.id,
-    });
-
-    res.json({ subscription: subscription });
-});
-
 router.post("/create-checkout-session", async (req, res) => {
 
 
@@ -60,14 +40,23 @@ router.post("/create-checkout-session", async (req, res) => {
         mode: 'subscription',
         line_items: [
             {
-                price: 'price_1PQfoJRqqMn2mwDSatuNouMx',
-                //price: subscription.price_id,
+                price: subscription.price_id,
                 quantity: 1
             },
         ],
         success_url: frontendUrl + 'success',
         cancel_url: frontendUrl + 'cancel',
         allow_promotion_codes: true,
+        custom_fields: [
+            {
+              key: 'special_instructions',
+              label: {
+                type: 'custom',
+                custom: 'Mande-nos uma mensagem',
+              },
+              type: 'text',
+            },
+          ],
         //subscription_data: { billing_cycle_anchor: unixTimestamp },
         billing_address_collection: 'required',
         shipping_address_collection: {
@@ -111,8 +100,7 @@ router.post("/create-checkout", async (req, res) => {
 
     const productDetails = order.products.map((product) => {
         return {
-            price: 'price_1PB4qJRqqMn2mwDSRxzGdiql',
-            //price: productItem.price_id,
+            price: product.price_id,
             quantity: product.quantity
         };
     });
