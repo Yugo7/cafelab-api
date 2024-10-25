@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { sendEmail } from '../services/email.service.js';
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_KEY
@@ -46,13 +47,17 @@ async function handleCheckoutSessionCompleted(event) {
             total: event.data.object.amount_total/100,
             user_id: event.data.object.customer_details.email,
             session_id: event.data.object.id,
+            note: event.data.object.custom_fields[0].text.value,
          })
-        .eq('id', event.data.object.metadata.order_id);
+        .eq('id', event.data.object.metadata.order_id)
+        .select();
 
     if (error) {
         console.error('Error updating order:', event.data.object.id);
         return { error: 'Error updating order' };
     }
+
+    //sendEmail(event.data.object.customer_details.email, 'Order Confirmation', data[0]);
 
     console.log('Order updated successfully:', event.data.object.metadata.order_id);
     return { data: 'Order updated successfully' };
