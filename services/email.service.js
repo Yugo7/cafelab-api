@@ -10,7 +10,7 @@ let transporter = nodemailer.createTransport({
     secure: true, // true for 465, false for other ports
     auth: {
         user: 'yugo@yuna.pt', // replace with your SMTP server email
-        pass: 'ja159pa753' // replace with your SMTP server password
+        pass: process.env.CAFELAB_EMAIL_APP // replace with your SMTP server password
     }
 });
 
