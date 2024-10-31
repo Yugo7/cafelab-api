@@ -23,8 +23,6 @@ router.post("/create-customer", async (req, res) => {
 });
 
 router.post("/create-checkout-session", async (req, res) => {
-
-
     console.log('session body:', req.body.subscription);
     const date = new Date();
     date.setMonth(date.getMonth() + 7);
@@ -37,6 +35,7 @@ router.post("/create-checkout-session", async (req, res) => {
 
 
     const session = await stripe.checkout.sessions.create({
+
         mode: 'subscription',
         line_items: [
             {
@@ -55,6 +54,7 @@ router.post("/create-checkout-session", async (req, res) => {
                 custom: 'Mande-nos uma mensagem',
               },
               type: 'text',
+              optional: true,
             },
           ],
         //subscription_data: { billing_cycle_anchor: unixTimestamp },
@@ -88,7 +88,6 @@ router.post("/create-checkout-session", async (req, res) => {
     res.json({ session });
 });
 
-
 router.post("/create-checkout", async (req, res) => {
 
     console.log(req.body)
@@ -100,7 +99,8 @@ router.post("/create-checkout", async (req, res) => {
 
     const productDetails = order.products.map((product) => {
         return {
-            price: product.price_id,
+            price: 'price_1PB548RqqMn2mwDSbc1odvlE',
+            //price: product.price_id,
             quantity: product.quantity
         };
     });
@@ -115,6 +115,7 @@ router.post("/create-checkout", async (req, res) => {
                 custom: 'Mande-nos uma mensagem',
               },
               type: 'text',
+              optional: true,
             },
           ],
         success_url: frontendUrl + 'success',
@@ -150,6 +151,10 @@ router.post("/create-checkout", async (req, res) => {
                 },
             },
         ],
+        locale: 'pt',
+        invoice_creation: {
+            enabled: true,
+          },
     };
 
     if (user) {

@@ -25,6 +25,8 @@ export async function createOrder(cart, user) {
         .from('order')
         .insert(
             {
+                user_id: user?.username ?? null,
+                user: user ?? null,
                 products: orderProducts,
                 variety: cart.variety,
                 status: 'CREATED',
