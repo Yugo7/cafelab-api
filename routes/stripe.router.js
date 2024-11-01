@@ -2,7 +2,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import { createClient } from "@supabase/supabase-js";
 import { getProducts, getSubscriptionById } from "../services/products.service.js";
-import {createOrder} from "../services/order.service.js";
+import { createOrder } from "../services/order.service.js";
 import { createStripeCustomer } from "../services/stripe.service.js";
 
 const router = express.Router();
@@ -23,7 +23,8 @@ router.post("/create-customer", async (req, res) => {
 });
 
 router.post("/create-checkout-session", async (req, res) => {
-    console.log('session body:', req.body.subscription);
+    console.log('session body:', req.body);
+    const user = req.body.user;
     const date = new Date();
     date.setMonth(date.getMonth() + 7);
     date.setDate(25);
@@ -34,8 +35,7 @@ router.post("/create-checkout-session", async (req, res) => {
     const subscription = await getSubscriptionById(id);
 
 
-    const session = await stripe.checkout.sessions.create({
-
+    const sessionConfig = {
         mode: 'subscription',
         line_items: [
             {
@@ -48,22 +48,28 @@ router.post("/create-checkout-session", async (req, res) => {
         allow_promotion_codes: true,
         custom_fields: [
             {
-              key: 'special_instructions',
-              label: {
-                type: 'custom',
-                custom: 'Mande-nos uma mensagem',
-              },
-              type: 'text',
-              optional: true,
+                key: 'special_instructions',
+                label: {
+                    type: 'custom',
+                    custom: 'Mande-nos uma mensagem',
+                },
+                type: 'text',
+                optional: true,
             },
-          ],
+        ],
         //subscription_data: { billing_cycle_anchor: unixTimestamp },
         billing_address_collection: 'required',
         shipping_address_collection: {
             allowed_countries: ['PT']
         },
-        locale: 'pt'
-    });
+        locale: 'pt',
+    };
+
+    if (user) {
+        sessionConfig.customer_email = user.username;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     subscription.variety = variety;
     subscription.coffee = coffee;
@@ -77,6 +83,7 @@ router.post("/create-checkout-session", async (req, res) => {
                 status: 'PENDING',
                 total: preco,
                 session_id: session.id,
+                type: 'SUBSCRICAO',
             }
         ]);
 
@@ -94,13 +101,12 @@ router.post("/create-checkout", async (req, res) => {
     const user = req.body.cart.user;
     const cart = req.body.cart;
 
-    const order = await createOrder(cart, user);
+    const order = await createOrder(cart, user, 'LOJA');
     console.log('order:', order);
 
     const productDetails = order.products.map((product) => {
         return {
-            price: 'price_1PB548RqqMn2mwDSbc1odvlE',
-            //price: product.price_id,
+            price: product.price_id,
             quantity: product.quantity
         };
     });
@@ -109,15 +115,15 @@ router.post("/create-checkout", async (req, res) => {
         allow_promotion_codes: true,
         custom_fields: [
             {
-              key: 'special_instructions',
-              label: {
-                type: 'custom',
-                custom: 'Mande-nos uma mensagem',
-              },
-              type: 'text',
-              optional: true,
+                key: 'special_instructions',
+                label: {
+                    type: 'custom',
+                    custom: 'Mande-nos uma mensagem',
+                },
+                type: 'text',
+                optional: true,
             },
-          ],
+        ],
         success_url: frontendUrl + 'success',
         cancel_url: frontendUrl + 'cancel',
         line_items: productDetails,
@@ -154,7 +160,7 @@ router.post("/create-checkout", async (req, res) => {
         locale: 'pt',
         invoice_creation: {
             enabled: true,
-          },
+        },
     };
 
     if (user) {

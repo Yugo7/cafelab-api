@@ -5,7 +5,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function createOrder(cart, user) {
+export async function createOrder(cart, user, type) {
     const allProducts = await getProducts();
 
     const orderProducts = cart.items.map((item) => {
@@ -30,6 +30,7 @@ export async function createOrder(cart, user) {
                 products: orderProducts,
                 variety: cart.variety,
                 status: 'CREATED',
+                type: type,
                 total: 0,
             }
         )
