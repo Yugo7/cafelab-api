@@ -13,8 +13,25 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 router.post('/', async (req, res) => {
     const { id, data: info, created, type } = req.body;
     const createdAt = new Date(created * 1000).toISOString();
+    const eventTypeId = info.object.id;
 
-    const {data, error} = await saveWebhookEvent({ id, info, createdAt, type });
+    const {data, error} = await saveWebhookEvent({ id, eventTypeId, info, createdAt, type });
+    
+    if (error) {
+        console.log("error: ", error); 
+        res.status(500).json("error");  
+    }
+
+    const result = await handleEventByType(req.body)
+    res.json(result);
+});
+
+router.post('/invoice', async (req, res) => {
+    const { id, data: info, created, type } = req.body;
+    const createdAt = new Date(created * 1000).toISOString();
+    const eventTypeId = info.object.id;
+
+    const {data, error} = await saveWebhookEvent({ id, eventTypeId, info, createdAt, type });
     
     if (error) {
         console.log("error: ", error); 
@@ -26,8 +43,15 @@ router.post('/', async (req, res) => {
 });
 
 // Create
-router.post('/test-payments', async (req, res) => {
-    console.log("test webhooks working: ", req.body);
+router.post('/checkout', async (req, res) => {
+    console.log("checkout webhooks working: ", req.body);
+
+    res.json("ok");
+});
+
+// Create
+router.post('/subscription', async (req, res) => {
+    console.log("subscription webhooks working: ", req.body);
 
     res.json("ok");
 });
@@ -39,4 +63,24 @@ router.post('/test-payments', async (req, res) => {
     res.json("ok");
 });
 
+// Create
+router.post('/test-payments/invoice', async (req, res) => {
+    console.log("invoice webhooks working: ", req.body);
+
+    res.json("ok");
+});
+
+// Create
+router.post('/test-payments/checkout', async (req, res) => {
+    console.log("checkout webhooks working: ", req.body);
+
+    res.json("ok");
+});
+
+// Create
+router.post('/test-payments/subscription', async (req, res) => {
+    console.log("subscription webhooks working: ", req.body);
+
+    res.json("ok");
+});
 export default router;

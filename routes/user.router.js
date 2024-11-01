@@ -1,7 +1,7 @@
 import express from 'express';
 
 const router = express.Router();
-import { createCustomer, changePassword, signInUser } from "../services/user.service.js";
+import { createCustomer, resetPassword, requestChangePassword, signInUser } from "../services/user.service.js";
 
 // Create
 router.post('/', async (req, res) => {
@@ -12,9 +12,17 @@ router.post('/', async (req, res) => {
 });
 
 // Change Password
-router.post('/change-password', async (req, res) => {
-    const { email, password } = req.body;
-    const { data, error } = await changePassword(email, password);
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    const { data, error } = await requestChangePassword(email);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
+});
+
+// Change Password
+router.post('/change-password/:token', async (req, res) => {
+    const { password } = req.body;
+    const { data, error } = await resetPassword(req.params.token, password);
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(data);
 });
