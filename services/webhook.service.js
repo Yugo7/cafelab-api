@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '../services/email.service.js';
-import { updateUser, createGuest, getUserByEmail } from '../services/user.service.js';
+import { createGuestOrUpdateUser } from '../services/user.service.js';
+import { updateOrder } from '../services/order.service.js';
 import { getEventByEventTypeIdAndType } from '../services/webhooks-events.service.js';
 
 const supabaseUrl = process.env.SUPABASE_URL
@@ -56,49 +57,20 @@ async function handleCheckoutSessionCompleted(event) {
         const invoice = await getEventByEventTypeIdAndType(eventData.invoice, 'invoice.payment_succeeded')
         console.log('invoice:', invoice[0].data.object.id);
 
-
-        const { data, error } = await supabase
-            .from('order')
-            .update({
-                status: 'PAYMENT_SUCCESSFUL',
-                total: eventData.amount_total / 100,
-                user_id: eventData.customer_details.email,
-                session_id: eventData.id,
-                note: eventData.custom_fields[0].text.value,
-                receipt_url: invoice[0].data.object.invoice_pdf,
-            })
-            .eq('id', eventData.metadata.order_id)
-            .select();
-
-        if (error) {
-            console.error('Error updating order:', eventData.id);
-            return { error: 'Error updating order' };
+        const orderUpdated = {
+            status: 'PAYMENT_SUCCESSFUL',
+            total: eventData.amount_total / 100,
+            user_id: eventData.customer_details.email,
+            session_id: eventData.id,
+            note: eventData.custom_fields[0].text.value,
+            receipt_url: invoice[0].data.object.invoice_pdf,
         }
-        sendEmail('Order Confirmation', customer, shipping, data[0]);
+        const { data: updatedOrder } = await updateOrder(eventData.metadata.order_id, orderUpdated)
+
+        sendEmail('Order Confirmation', customer, shipping, updatedOrder);
         console.log('Order updated successfully:', eventData.metadata.order_id);
 
-        const user = await getUserByEmail(eventData.customer_details.email);
-        console.log('user:', user);
-        if (!user) {
-            await createGuest({
-                name: eventData.customer_details.name,
-                username: eventData.customer_details.email,
-                email: eventData.customer_details.email,
-                address: eventData.customer_details.address,
-                stripe_id: eventData.customer,
-            });
-        } else {
-            let guestStripeIds = user.guest_stripe_ids || [];
-            if (eventData.customer && !guestStripeIds.includes(eventData.customer)) {
-                guestStripeIds.push(eventData.customer);
-            }
-            console.log('guestStripeIds: ', guestStripeIds);
-            await updateUser({
-                id: user.id,
-                guest_stripe_ids: guestStripeIds, 
-                nif: "niftest"
-            });
-        }
+        await createGuestOrUpdateUser(eventData.customer_details, eventData.customer);
 
         return { data: 'Order updated successfully' };
     } catch (error) {

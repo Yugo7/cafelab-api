@@ -44,16 +44,36 @@ router.post('/invoice', async (req, res) => {
 
 // Create
 router.post('/checkout', async (req, res) => {
-    console.log("checkout webhooks working: ", req.body);
+    const { id, data: info, created, type } = req.body;
+    const createdAt = new Date(created * 1000).toISOString();
+    const eventTypeId = info.object.id;
 
-    res.json("ok");
+    const {data, error} = await saveWebhookEvent({ id, eventTypeId, info, createdAt, type });
+    
+    if (error) {
+        console.log("error: ", error); 
+        res.status(500).json("error");  
+    }
+
+    const result = await handleEventByType(req.body)
+    res.json(result);
 });
 
 // Create
 router.post('/subscription', async (req, res) => {
-    console.log("subscription webhooks working: ", req.body);
+    const { id, data: info, created, type } = req.body;
+    const createdAt = new Date(created * 1000).toISOString();
+    const eventTypeId = info.object.id;
 
-    res.json("ok");
+    const {data, error} = await saveWebhookEvent({ id, eventTypeId, info, createdAt, type });
+    
+    if (error) {
+        console.log("error: ", error); 
+        res.status(500).json("error");  
+    }
+
+    const result = await handleEventByType(req.body)
+    res.json(result);
 });
 
 // Create

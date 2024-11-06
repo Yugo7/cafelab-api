@@ -154,6 +154,7 @@ export async function generateShippingDetailsHtml(shipping) {
 
 export async function generateHeaderHtml(order) {
     
+    console.log('Order: ', order);
     const textSubscription = `chegará em sua morada a partir do dia 02 de cada mês.`;
     const textOrder = `enviaremos em ate 72h úteis.`;
 
