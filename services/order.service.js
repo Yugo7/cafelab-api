@@ -45,7 +45,7 @@ export async function createOrder(cart, user, type) {
 
 export async function getOrder(orderId) {
     const {data, error} = await supabase
-        .from('orders')
+        .from('order')
         .select('*')
         .eq('id', orderId)
         .single();
@@ -54,30 +54,24 @@ export async function getOrder(orderId) {
 }
 
 export async function updateOrder(orderId, orderData) {
-    try {
-        const {data, error} = await supabase
-            .from('orders')
-            .update(orderData)
-            .eq('id', orderId)
-            .select();
+    const {data, error} = await supabase
+        .from('order')
+        .update(orderData)
+        .eq('id', orderId)
+        .select();
 
-        if (error) {
-            console.error('Error updating order:', orderId, orderData);
-            console.error('Error from Supabase:', error);
-            throw error;
-        }
-
-        console.log('Updated order data:', data);
-        return data[0];
-    } catch (error) {
-        console.error('Exception caught in updateOrder:', error.message);
-        throw error;
+    if (error) {
+        console.log('Error from Supabase:', error ? error.message : 'error message not found');
+        throw {error: error.message};
     }
+
+    console.log('Updated order data:', data);
+    return data[0];
 }
 
 export async function deleteOrder(orderId) {
-    const {data, error} = await this.supabase
-        .from('orders')
+    const {data, error} = await supabase
+        .from('order')
         .delete()
         .eq('id', orderId);
     if (error) throw error;
