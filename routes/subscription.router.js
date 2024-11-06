@@ -24,4 +24,15 @@ router.post('/:id', async (req, res) => {
     return res.status(200).json(data);
 });
 
+router.post('/cancel/:id', async (req, res) => {
+    const userId = req.params.id;
+    const { data, error } = await supabase
+        .from('order')
+        .select()
+        .eq('id', userId);
+    console.log('error:', error);
+
+    return res.status(200).json(data);
+});
+
 export default router;

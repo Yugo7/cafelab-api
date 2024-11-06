@@ -1,7 +1,7 @@
 import express from 'express';
 import Stripe from 'stripe';
 import { createClient } from "@supabase/supabase-js";
-import { getProducts, getSubscriptionById } from "../services/products.service.js";
+import { getSubscriptionById } from "../services/products.service.js";
 import { createOrder } from "../services/order.service.js";
 import { createStripeCustomer } from "../services/stripe.service.js";
 
@@ -34,6 +34,27 @@ router.post("/create-checkout-session", async (req, res) => {
     const { id, variety, coffee, payment } = req.body.subscription;
     const subscription = await getSubscriptionById(id);
 
+    subscription.variety = variety;
+    subscription.coffee = coffee;
+
+    let preco = subscription.price * payment;
+    const { data, error } = await supabase
+        .from('order')
+        .insert([
+            {
+                products: subscription,
+                status: 'PENDING',
+                total: preco,
+                type: 'SUBSCRICAO',
+            }
+        ])
+        .select();
+
+    if (error) {
+        console.log('Error creating order:', error);
+    } else {
+        console.log('Order created:', data);
+    }   
 
     const sessionConfig = {
         mode: 'subscription',
@@ -62,6 +83,9 @@ router.post("/create-checkout-session", async (req, res) => {
         shipping_address_collection: {
             allowed_countries: ['PT']
         },
+        metadata: {
+            order_id: data[0].id,
+        },
         locale: 'pt',
     };
 
@@ -70,26 +94,6 @@ router.post("/create-checkout-session", async (req, res) => {
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
-
-    subscription.variety = variety;
-    subscription.coffee = coffee;
-
-    let preco = subscription.price * payment;
-    const { data, error } = await supabase
-        .from('order')
-        .insert([
-            {
-                products: subscription,
-                status: 'PENDING',
-                total: preco,
-                session_id: session.id,
-                type: 'SUBSCRICAO',
-            }
-        ]);
-
-    if (error) {
-        console.log('Error creating order:', error);
-    }
 
     console.log('session:', session);
     res.json({ session });

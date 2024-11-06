@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { createStripeCustomer } from "../services/stripe.service.js";
+import {createClient} from '@supabase/supabase-js';
+import {createStripeCustomer} from "../services/stripe.service.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -276,9 +276,33 @@ async function getUserById(id) {
     }
 }
 
-const getToken = async (user) => { 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
-    return token;
+export async function createGuestOrUpdateUser(customer_details, stripe_id) {
+    const user = await getUserByEmail(customer_details.email);
+    console.log('user:', user);
+    if (!user) {
+        await createGuest({
+            name: customer_details.name,
+            username: customer_details.email,
+            email: customer_details.email,
+            address: customer_details.address,
+            stripe_id: stripe_id,
+        });
+    } else {
+        let guestStripeIds = user.guest_stripe_ids || [];
+        if (stripe_id && !guestStripeIds.includes(stripe_id)) {
+            guestStripeIds.push(stripe_id);
+        }
+        console.log('guestStripeIds: ', guestStripeIds);
+        await updateUser({
+            id: user.id,
+            guest_stripe_ids: guestStripeIds, 
+            nif: "niftest"
+        });
+    }
+}
+
+const getToken = async (user) => {
+    return jwt.sign({id: user.id, email: user.email, role: user.role}, JWT_SECRET, {expiresIn: '1h'});
 }
 
 

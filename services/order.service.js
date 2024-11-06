@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import { getProducts } from "../services/products.service.js";
+import {createClient} from '@supabase/supabase-js';
+import {getProducts} from "./products.service.js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -21,7 +21,7 @@ export async function createOrder(cart, user, type) {
         };
     });
 
-    const { data, error } = await supabase
+    const {data, error} = await supabase
         .from('order')
         .insert(
             {
@@ -38,35 +38,48 @@ export async function createOrder(cart, user, type) {
 
     if (error) {
         console.log('error:', error);
-        return res.status(500).json({ error: error.message })
+        return res.status(500).json({error: error.message})
     }
     return data[0];
-  }
+}
 
-  export async function  getOrder(orderId) {
-    const { data, error } = await this.supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single();
+export async function getOrder(orderId) {
+    const {data, error} = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
     if (error) throw error;
     return data;
-  }
+}
 
-  export async function  updateOrder(orderId, orderData) {
-    const { data, error } = await this.supabase
-      .from('orders')
-      .update(orderData)
-      .eq('id', orderId);
+export async function updateOrder(orderId, orderData) {
+    try {
+        const {data, error} = await supabase
+            .from('orders')
+            .update(orderData)
+            .eq('id', orderId)
+            .select();
+
+        if (error) {
+            console.error('Error updating order:', orderId, orderData);
+            console.error('Error from Supabase:', error);
+            throw error;
+        }
+
+        console.log('Updated order data:', data);
+        return data[0];
+    } catch (error) {
+        console.error('Exception caught in updateOrder:', error.message);
+        throw error;
+    }
+}
+
+export async function deleteOrder(orderId) {
+    const {data, error} = await this.supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId);
     if (error) throw error;
     return data;
-  }
-
-  export async function  deleteOrder(orderId) {
-    const { data, error } = await this.supabase
-      .from('orders')
-      .delete()
-      .eq('id', orderId);
-    if (error) throw error;
-    return data;
-  }
+}
