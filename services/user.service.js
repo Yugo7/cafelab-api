@@ -225,7 +225,7 @@ export async function updateUser(user) {
         const { data, error } = await supabase
             .from('user')
             .update({nif: "teste"})
-            .eq('id', 24)
+            .eq('id', user.id)
             .select();
 
         if (error) {

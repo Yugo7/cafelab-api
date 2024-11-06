@@ -57,7 +57,7 @@ async function handleCheckoutSessionCompleted(event) {
         const invoice = await getEventByEventTypeIdAndType(eventData.invoice, 'invoice.payment_succeeded')
         console.log('invoice:', invoice[0].data.object.id);
 
-        const orderUpdated = {
+        const orderUpdateQuery = {
             status: 'PAYMENT_SUCCESSFUL',
             total: eventData.amount_total / 100,
             user_id: eventData.customer_details.email,
@@ -65,16 +65,17 @@ async function handleCheckoutSessionCompleted(event) {
             note: eventData.custom_fields[0].text.value,
             receipt_url: invoice[0].data.object.invoice_pdf,
         }
-        const { data: updatedOrder } = await updateOrder(eventData.metadata.order_id, orderUpdated)
 
-        sendEmail('Order Confirmation', customer, shipping, updatedOrder);
+        const { data: updatedOrder } = await updateOrder(eventData.metadata.order_id, orderUpdateQuery)
+
+        //sendEmail('Order Confirmation', customer, shipping, updatedOrder);
         console.log('Order updated successfully:', eventData.metadata.order_id);
 
         await createGuestOrUpdateUser(eventData.customer_details, eventData.customer);
 
         return { data: 'Order updated successfully' };
     } catch (error) {
-        console.error('Error in webhook processing:', error.message);
+        console.error('Error in webhook processing:', error);
         return { error: 'Error in webhook processing' };
     }
 }

@@ -10,11 +10,11 @@ export async function createStripeCustomer(email, name) {
         return customerSearchRes.data[0];
     }
     else {
-    const stripeCustomer = await stripe.customers.create({
-        email: email,
-        name: name,
-    });
-    return stripeCustomer;
+        const stripeCustomer = await stripe.customers.create({
+            email: email,
+            name: name,
+        });
+        return stripeCustomer;
     }
 }
 
@@ -24,4 +24,13 @@ export async function searchCustomer(query) {
     });
 
     return customerSearchRes;
+}
+
+export async function cancelSubscription(query) {
+    const subscription = await stripe.subscriptions.update(
+        '{{SUBSCRIPTION_ID}}',
+        {
+            cancel_at_period_end: true,
+        }
+    );
 }
