@@ -1,9 +1,10 @@
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import {uploadBlob} from "../services/vercel/blob.service.js";
-import {upload} from "@vercel/blob/client";
+import multer from "multer";
 
 const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
 
 // Create a single supabase client for interacting with your database
 const supabaseUrl = 'https://sbkrffeyngcjbzrwhvdq.supabase.co';
