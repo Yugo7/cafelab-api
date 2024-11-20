@@ -25,13 +25,19 @@ router.post('/:id', async (req, res) => {
 });
 
 router.post('/cancel/:id', async (req, res) => {
-    const userId = req.params.id;
+    const { name, email, phone, description } = req.body;
+    const orderId = req.params.id;
     const { data, error } = await supabase
-        .from('order')
-        .select()
-        .eq('id', userId);
-    console.log('error:', error);
-
+        .from('contacts')
+        .insert([
+            {
+                name: `automated request for order: ${orderId}`,
+                email,
+                phone,
+                description: "cancel subscription request"
+            }
+        ]);
+    if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(data);
 });
 
