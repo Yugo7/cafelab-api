@@ -1,6 +1,7 @@
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import {uploadBlob} from "../services/vercel/blob.service.js";
+import {upload} from "@vercel/blob/client";
 
 const router = express.Router();
 
