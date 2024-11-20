@@ -2,20 +2,44 @@
 import '../config.cjs';
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
+import multer from 'multer';
+import {uploadBlob} from "../services/vercel/blob.service.js";
 
 const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
 
-// Create a single supabase client for interacting with your database
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Create
-router.post('/', async (req, res) => {
+router.post('/', upload.fields([
+    { name: 'promoImage', maxCount: 1 },
+    { name: 'postImage', maxCount: 1 }
+]), async (req, res) => {
+    console.log('Received POST request with body:', req.body);
+    console.log('Received files:', req.files);
+
+    const promoImage = req.files.promoImage ? await uploadBlob(req.files.promoImage) : null;
+    const postImage = req.files.postImage ? await uploadBlob(req.files.postImage) : null;
+
+    const eventData = {
+        name: req.body.name,
+        date: req.body.date,
+        description: req.body.description,
+        local: req.body.local,
+        imagePromotion: promoImage ? promoImage.url : null,
+        imageFinish: postImage ? postImage.url : null,
+        instagramUrl: req.body.instagramUrl
+    };
+
     const { data, error } = await supabase
         .from('events')
-        .insert([req.body]);
-    if (error) return res.status(500).json({ error: error.message });
+        .insert([eventData]);
+
+    if (error) {
+        console.error('Error inserting event:', error.message);
+        return res.status(500).json({ error: error.message });
+    }
     return res.status(200).json(data);
 });
 
@@ -39,23 +63,58 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update
-router.put('/:id', async (req, res) => {
-    const { data, error } = await supabase
-        .from('events')
-        .update(req.body)
-        .eq('id', req.params.id);
-    if (error) return res.status(500).json({ error: error.message });
-    return res.status(200).json(data);
+router.put('/:id', upload.fields([
+    { name: 'promoImage', maxCount: 1 },
+    { name: 'postImage', maxCount: 1 }
+]), async (req, res) => {
+    console.log('Received UPDATE request with ID:', req.params.id);
+    console.log('Received PUT request with body:', req.body);
+    console.log('Received files:', req.files);
+
+    try {
+        const promoImage = req.files.promoImage ? await uploadBlob(req.files.promoImage) : null;
+        const postImage = req.files.postImage ? await uploadBlob(req.files.postImage) : null;
+
+        const eventData = {
+            name: req.body.name,
+            date: req.body.date,
+            description: req.body.description,
+            local: req.body.local,
+            imagePromotion: promoImage ? promoImage.url : null,
+            imageFinish: postImage ? postImage.url : null,
+            instagramUrl: req.body.instagramUrl
+        };
+
+        console.log('Updating event with data:', eventData);
+
+        const { data, error } = await supabase
+            .from('events')
+            .update(eventData)
+            .eq('id', req.params.id)
+            .select();
+
+        if (error) {
+            console.error('Error updating event:', error.message);
+            return res.status(500).json({ error: error.message });
+        }
+
+        console.log('Update successful, data:', data);
+        return res.status(200).json(data);
+    } catch (error) {
+        console.error('Error processing request:', error.message);
+        return res.status(500).json({ error: 'Error processing request' });
+    }
 });
 
 // Delete
 router.delete('/:id', async (req, res) => {
+    console.log('Received DELETE request with ID:', req.params.id);
     const { data, error } = await supabase
         .from('events')
         .delete()
         .eq('id', req.params.id);
     if (error) return res.status(500).json({ error: error.message });
-    return res.status(200).json(data);
+    return res.status(204).json(data);
 });
 
 export default router;

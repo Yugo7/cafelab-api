@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { fetchAnalyticsData } from '../services/vercel.service.js';
+import { fetchAnalyticsData } from '../services/vercel/analytics.service.js';
 
 router.get('/vercel-analytics', async (req, res) => {
     try {

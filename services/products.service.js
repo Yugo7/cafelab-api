@@ -22,3 +22,4 @@ export async function getProducts() {
 
     return data;
 }
+
