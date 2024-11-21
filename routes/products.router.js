@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -16,35 +15,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 router.get('/sections', (req, res) => {
     const eventTypes = ['CAFE', 'BOUTIQUE'];
     return res.status(200).json(eventTypes);
-});
-
-// Create
-router.post('/', upload.fields([
-    { name: 'promoImage', maxCount: 1 }
-]), async (req, res) => {
-    console.log('Received POST request with body:', req.body);
-    console.log('Received files:', req.files);
-
-    const promoImage = req.files.promoImage ? await uploadBlob(req.files.promoImage[0]) : null;
-
-    const eventData = {
-        name: req.body.name,
-        date: req.body.date,
-        description: req.body.description,
-        local: req.body.local,
-        imagePromotion: promoImage ? promoImage.url : null,
-        instagramUrl: req.body.instagramUrl
-    };
-
-    const { data, error } = await supabase
-        .from('events')
-        .insert([eventData]);
-
-    if (error) {
-        console.error('Error inserting event:', error.message);
-        return res.status(500).json({ error: error.message });
-    }
-    return res.status(200).json(data);
 });
 
 // Read
