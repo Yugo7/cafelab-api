@@ -2,6 +2,9 @@ import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import multer from 'multer';
 import { uploadBlob } from '../services/vercel/blob.service.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });

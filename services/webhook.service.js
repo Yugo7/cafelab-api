@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail } from '../services/email.service.js';
-import { createGuestOrUpdateUser } from '../services/user.service.js';
-import { updateOrder } from '../services/order.service.js';
-import { getEventByEventTypeIdAndType } from '../services/webhooks-events.service.js';
+import { sendEmail } from './email.service.js';
+import { createGuestOrUpdateUser } from './user.service.js';
+import { updateOrder } from './order.service.js';
+import { getEventByEventTypeIdAndType } from './webhooks-events.service.js';
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_KEY
