@@ -6,7 +6,17 @@ import multer from 'multer';
 import {uploadBlob} from "../services/vercel/blob.service.js";
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 4 * 1024 * 1024 }, // 4 MB limit
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'), false);
+        }
+    }
+});
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -19,28 +29,33 @@ router.post('/', upload.fields([
     console.log('Received POST request with body:', req.body);
     console.log('Received files:', req.files);
 
-    const promoImage = req.files.promoImage ? await uploadBlob(req.files.promoImage) : null;
-    const postImage = req.files.postImage ? await uploadBlob(req.files.postImage) : null;
+    try {
+        const promoImage = req.files.promoImage ? await uploadBlob(req.files.promoImage) : null;
+        const postImage = req.files.postImage ? await uploadBlob(req.files.postImage) : null;
 
-    const eventData = {
-        name: req.body.name,
-        date: req.body.date,
-        description: req.body.description,
-        local: req.body.local,
-        imagePromotion: promoImage ? promoImage.url : null,
-        imageFinish: postImage ? postImage.url : null,
-        instagramUrl: req.body.instagramUrl
-    };
+        const eventData = {
+            name: req.body.name,
+            date: req.body.date,
+            description: req.body.description,
+            local: req.body.local,
+            imagePromotion: promoImage ? promoImage.url : null,
+            imageFinish: postImage ? postImage.url : null,
+            instagramUrl: req.body.instagramUrl
+        };
 
-    const { data, error } = await supabase
-        .from('events')
-        .insert([eventData]);
+        const { data, error } = await supabase
+            .from('events')
+            .insert([eventData]);
 
-    if (error) {
-        console.error('Error inserting event:', error.message);
+        if (error) {
+            console.error('Error inserting event:', error.message);
+            return res.status(500).json({ error: error.message });
+        }
+        return res.status(200).json(data);
+    } catch (error) {
+        console.error('Error processing request:', error.message);
         return res.status(500).json({ error: error.message });
     }
-    return res.status(200).json(data);
 });
 
 // Read
@@ -76,13 +91,13 @@ router.put('/:id', upload.fields([
         const postImage = req.files.postImage ? await uploadBlob(req.files.postImage) : null;
 
         const eventData = {
-            name: req.body.name,
-            date: req.body.date,
-            description: req.body.description,
-            local: req.body.local,
-            imagePromotion: promoImage ? promoImage.url : null,
-            imageFinish: postImage ? postImage.url : null,
-            instagramUrl: req.body.instagramUrl
+            ...(req.body.name && { name: req.body.name }),
+            ...(req.body.date && { date: req.body.date }),
+            ...(req.body.description && { description: req.body.description }),
+            ...(req.body.local && { local: req.body.local }),
+            ...(promoImage && { imagePromotion: promoImage.url }),
+            ...(postImage && { imageFinish: postImage.url }),
+            ...(req.body.instagramUrl && { instagramUrl: req.body.instagramUrl })
         };
 
         console.log('Updating event with data:', eventData);

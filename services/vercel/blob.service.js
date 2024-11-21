@@ -6,8 +6,7 @@ export const uploadBlob = async (blob) => {
         console.log('uploading blob...');
 
         const promoImageFile = blob[0];
-        const fileStream = fs.createReadStream(promoImageFile.path);
-        const result = await put(promoImageFile.originalname, fileStream, {
+        const result = await put(promoImageFile.originalname, promoImageFile.buffer, {
             access: 'public',
         });
 
