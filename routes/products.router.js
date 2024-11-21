@@ -1,16 +1,17 @@
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
-import {uploadBlob} from "../services/vercel/blob.service.js";
-import multer from "multer";
+import multer from 'multer';
+import { uploadBlob } from '../services/vercel/blob.service.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Create a single supabase client for interacting with your database
-const supabaseUrl = 'https://sbkrffeyngcjbzrwhvdq.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNia3JmZmV5bmdjamJ6cndodmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMxOTM2MjgsImV4cCI6MjAyODc2OTYyOH0.COR1kdIkfK19CRDIrdwmI2CQD8VXdnF46cc0Ql8ofyU';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
-
 
 router.get('/sections', (req, res) => {
     const eventTypes = ['CAFE', 'BOUTIQUE'];
@@ -24,8 +25,7 @@ router.post('/', upload.fields([
     console.log('Received POST request with body:', req.body);
     console.log('Received files:', req.files);
 
-    const promoImage = req.files.promoImage ? await uploadBlob(req.files.promoImage) : null;
-    const postImage = req.files.postImage ? await uploadBlob(req.files.postImage) : null;
+    const promoImage = req.files.promoImage ? await uploadBlob(req.files.promoImage[0]) : null;
 
     const eventData = {
         name: req.body.name,
@@ -33,7 +33,6 @@ router.post('/', upload.fields([
         description: req.body.description,
         local: req.body.local,
         imagePromotion: promoImage ? promoImage.url : null,
-        imageFinish: postImage ? postImage.url : null,
         instagramUrl: req.body.instagramUrl
     };
 
