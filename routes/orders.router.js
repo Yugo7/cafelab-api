@@ -1,63 +1,55 @@
 import express from 'express';
-import {createClient} from '@supabase/supabase-js';
+import {createOrder, getAllOrders, getOrdersByUserId, updateOrder, deleteOrder} from '../services/order.service.js';
 
 const router = express.Router();
 
-// Create a single supabase client for interacting with your database
-const supabaseUrl = 'https://sbkrffeyngcjbzrwhvdq.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNia3JmZmV5bmdjamJ6cndodmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMxOTM2MjgsImV4cCI6MjAyODc2OTYyOH0.COR1kdIkfK19CRDIrdwmI2CQD8VXdnF46cc0Ql8ofyU';
-const supabase = createClient(supabaseUrl, supabaseKey);
-
 // Create
 router.post('/', async (req, res) => {
-    const {data, error} = await supabase
-        .from('order')
-        .insert([req.body]);
-    if (error) return res.status(500).json({error: error.message});
-    return res.status(200).json(data);
+    try {
+        const data = await createOrder(req.body);
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// Read
+// Read all orders
 router.get('/', async (req, res) => {
-    const {data, error} = await supabase
-        .from('order')
-        .select('*')
-        .gt('total', 0)
-        .order('created_at', {ascending: false});
-    if (error) return res.status(500).json({error: error.message});
-    return res.status(200).json(data);
+    try {
+        const data = await getAllOrders();
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// Read
+// Read orders by user ID
 router.get('/:userid', async (req, res) => {
-    const {data, error} = await supabase
-        .from('order')
-        .select('*')
-        .eq('user_id', req.params.userid)
-        .order('created_at', {ascending: false});
-    if (error) return res.status(500).json({error: error.message});
-    return res.status(200).json(data);
+    try {
+        const data = await getOrdersByUserId(req.params.userid);
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Update
 router.put('/:id', async (req, res) => {
-    const {data, error} = await supabase
-        .from('order')
-        .update(req.body)
-        .eq('id', req.params.id);
-    if (error) return res.status(500).json({error: error.message});
-    return res.status(200).json(data);
+    try {
+        const data = await updateOrder(req.params.id, req.body);
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Delete
 router.delete('/:id', async (req, res) => {
-    const {data, error} = await supabase
-        .from('order')
-        .delete()
-        .eq('id', req.params.id);
-    if (error) return res.status(500).json({error: error.message});
-    return res.status(200).json(data);
+    try {
+        const data = await deleteOrder(req.params.id);
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
-
-
 export default router;

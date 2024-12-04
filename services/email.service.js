@@ -2,43 +2,21 @@ import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getProducts } from './products.service.js';
 import { formatCurrency } from './utils.js';
+
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+const logoHtml = fs.readFileSync(path.join(dirname, '../templates/email/header.html'), 'utf8');
+const footerHtml = fs.readFileSync(path.join(dirname, '../templates/email/footer.html'), 'utf8');
 
 let transporter = nodemailer.createTransport({
     host: 'smtp-pt.securemail.pro', // replace with your SMTP server host
     port: 465, // replace with your SMTP server port
     secure: true, // true for 465, false for other ports
     auth: {
-        user: 'yugo@yuna.pt', // replace with your SMTP server email
+        user: 'cafelab@yuna.pt', // replace with your SMTP server email
         pass: process.env.CAFELAB_EMAIL_APP // replace with your SMTP server password
     }
 });
-
-function generateOrderHTML(order) {
-    let productsHTML = '';
-    for (let product of order.products) {
-        productsHTML += `
-            <tr>
-                <th>${product.name}</th>
-                <th>${product.price}</th>
-            </tr>
-        `;
-    }
-
-    return `
-        <h1>Order Confirmation</h1>
-        <p>Thank you for your order, ${order.customer.name}!</p>
-        <table>
-            <tr>
-                <th>Product</th>
-                <th>Price</th>
-            </tr>
-            ${productsHTML}
-        </table>
-        <p>Total: ${order.total}</p>
-    `;
-}
 
 async function generateProductsHtml(order) {
     let productsHTML = '';
@@ -80,25 +58,42 @@ async function generateProductsHtml(order) {
     return productsHTML;
 }
 
-export async function sendEmail(subject, customer, shipping, order) {
+export async function sendOrderEmail(subject, customer, shipping, order) {
 
     console.log('Order: ', order);
     const headerHtml = await generateHeaderHtml(order);
     const productsHtml = await generateProductsHtml(order)
     const shippingDetailsHtml = await generateShippingDetailsHtml(shipping.details);
 
-    const dirname = path.dirname(fileURLToPath(import.meta.url));
     const templatePath = path.join(dirname, '../templates/email/order-new.html');
     const content = fs.readFileSync(templatePath, 'utf8');
 
-    const htmlContent = content.replace('{{products}}', productsHtml).replace('{{order_id}}', order.id).replace('{{total}}', formatCurrency(order.total)).replace('{{shipping}}', formatCurrency(shipping.cost.amount_total / 100.0)).replace('{{shipping_details}}', shippingDetailsHtml).replace('{{header}}', headerHtml);   
+    const htmlContent = content.replace('{{products}}', productsHtml).replace('{{order_id}}', order.id).replace('{{total}}', formatCurrency(order.total)).replace('{{shipping}}', formatCurrency(shipping.cost.amount_total / 100.0)).replace('{{shipping_details}}', shippingDetailsHtml).replace('{{header}}', headerHtml);
 
     let info = await transporter.sendMail({
-        from: '"CafeLab PT" <yugo@yuna.pt>',
+        from: '"CafeLab PT" <atendimentocafelab@yuna.pt>',
         to: customer.email,
         subject: subject,
         html: htmlContent
         //generateOrderHTML({ customer: { name: 'João' }, products: [{ name: 'Café', price: 2.5 }], total: 2.5 }), // html body
+    });
+
+    console.log('Message sent: %s', info.messageId);
+}
+
+export async function sendPasswordTokenEmail(token, email) {
+
+    console.log('Token: ', token);
+    const templatePath = path.join(dirname, '../templates/email/password-change.html');
+    const content = fs.readFileSync(templatePath, 'utf8');
+
+    const htmlContent = content.replace('{{resetLink}}', process.env.FRONTEND_URL + '/reset-password/' + token).replace('{{footer}}', footerHtml).replace('{{header}}', logoHtml);
+
+    let info = await transporter.sendMail({
+        from: '"CafeLab PT" <cafelab@yuna.pt>',
+        to: email,
+        subject: "Alteração da palavra-passe",
+        html: htmlContent
     });
 
     console.log('Message sent: %s', info.messageId);
