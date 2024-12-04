@@ -1,7 +1,13 @@
 import express from 'express';
 
 const router = express.Router();
-import { createCustomer, resetPassword, requestChangePassword, signInUser } from "../services/user.service.js";
+import {
+    createCustomer,
+    resetPassword,
+    requestChangePassword,
+    signInUser,
+    getAllUsers
+} from "../services/user.service.js";
 import {getOrdersByUserId} from "../services/order.service.js";
 
 // Create

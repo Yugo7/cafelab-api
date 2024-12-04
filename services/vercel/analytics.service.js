@@ -5,13 +5,14 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export const fetchAnalyticsData = async () => {
+export const fetchAnalyticsData = async (start, end) => {
     try {
         console.log('Fetching analytics data...');
-        // Fetch data from 'access' table
         let { data, error } = await supabase
             .from('analytcs')
-            .select('date, accesses, visitors');
+            .select('date, accesses, visitors')
+            .gte('date', start)
+            .lte('date', end);
 
         if (error) {
             console.error(error.message);

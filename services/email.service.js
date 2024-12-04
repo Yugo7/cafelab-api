@@ -1,6 +1,12 @@
 import nodemailer from 'nodemailer';
 import {promises as fs} from 'fs';
 import {formatCurrency} from './utils.js';
+import {createClient} from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_KEY
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 
 const logoHtml = '<table cellpadding="0" cellspacing="0" class="es-header" align="center" role="none" style="mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:collapse;border-spacing:0px;table-layout:fixed !important;width:100%;background-color:transparent;background-repeat:repeat;background-position:center top">\n' +
     '    <tr>\n' +
@@ -837,5 +843,45 @@ export async function generateHeaderHtml(order) {
 					</table>`
 }
 
+export async function activateEmailComm(email, name) {
+    try {
+        const { data, error } = await supabase
+            .from('newsletter')
+            .upsert(
+                {
+                    name: name,
+                    email: email,
+                    is_active: true
+                },
+                { onConflict: ['email'] } // specify the column(s) to check for conflicts
+            )
+            .select();
 
+        if (error) throw error;
 
+        return data[0];
+    } catch (err) {
+        console.error('Error activating email:', err);
+        return null;
+    }
+}
+
+export async function deactivateEmailComm(email, reason, comment) {
+    console.log('Deactivation reason:', reason);
+    console.log('Deactivation comment:', comment);
+
+    try {
+        const { data, error } = await supabase
+            .from('newsletter')
+            .update({ is_active: false })
+            .eq('email', email)
+            .select();
+
+        if (error) throw error;
+
+        return data.length > 0 ? data[0] : null;
+    } catch (err) {
+        console.error('Error deactivating email:', err);
+        return null;
+    }
+}
