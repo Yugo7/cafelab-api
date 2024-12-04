@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import cors from 'cors';
 import express from 'express';
 import productsRouter from './routes/products.router.js';
@@ -44,7 +47,7 @@ app.use('/sp', stripeRouter);
 app.use('/internal', internalRoutes);
 
 app.get('/', async (req, res) => {
-    res.send('Hello World!');
+    res.send('Up!');
 });
 
 const PORT = 9443;

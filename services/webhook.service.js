@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendEmail } from './email.service.js';
+import { sendOrderEmail } from './email.service.js';
 import { createGuestOrUpdateUser } from './user.service.js';
 import { updateOrder } from './order.service.js';
 import { getEventByEventTypeIdAndType } from './webhooks-events.service.js';
@@ -68,7 +68,7 @@ async function handleCheckoutSessionCompleted(event) {
 
         const { data: updatedOrder } = await updateOrder(eventData.metadata.order_id, orderUpdateQuery)
 
-        //sendEmail('Order Confirmation', customer, shipping, updatedOrder);
+        await sendOrderEmail('Order Confirmation', customer, shipping, updatedOrder);
         console.log('Order updated successfully:', eventData.metadata.order_id);
 
         await createGuestOrUpdateUser(eventData.customer_details, eventData.customer);

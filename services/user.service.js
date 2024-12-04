@@ -1,8 +1,9 @@
 import {createClient} from '@supabase/supabase-js';
-import {createStripeCustomer} from "../services/stripe.service.js";
+import {createStripeCustomer} from "./stripe.service.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import {sendPasswordTokenEmail} from "./email.service.js";
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_KEY
@@ -120,7 +121,7 @@ export const requestChangePassword = async (email) => {
         const token = generateToken();
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 1);
-        
+
         const { data, error } = await supabase
             .from('password_tokens')
             .insert([
@@ -135,7 +136,7 @@ export const requestChangePassword = async (email) => {
             throw error;
         }
 
-        //await sendPasswordResetEmail(user.email, token);
+        await sendPasswordTokenEmail(token, email);
         console.log('Password reset token sent successfully: ', token);
 
         return {
@@ -159,7 +160,7 @@ export const resetPassword = async (token, newPassword) => {
             .eq('token', token)
             .single();
 
-            console.log('tokenData:', tokenData);   
+            console.log('tokenData:', tokenData);
 
         if (tokenError || !tokenData) {
             throw new Error('Invalid or expired token');
@@ -295,7 +296,7 @@ export async function createGuestOrUpdateUser(customer_details, stripe_id) {
         console.log('guestStripeIds: ', guestStripeIds);
         await updateUser({
             id: user.id,
-            guest_stripe_ids: guestStripeIds, 
+            guest_stripe_ids: guestStripeIds,
             nif: "niftest"
         });
     }
@@ -308,6 +309,23 @@ const getToken = async (user) => {
 
 function generateRandomPassword(length = 16) {
     return crypto.randomBytes(length).toString('base64').slice(0, length);
+}
+
+export async function getAllUsers() {
+    try {
+        const { data, error } = await supabase
+            .from('user')
+            .select('*');
+
+        if (error) {
+            throw new Error('Error fetching users');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error fetching users:', error.message);
+        return { error: error.message };
+    }
 }
 
 function generateToken() {

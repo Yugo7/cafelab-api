@@ -1,11 +1,12 @@
 const postgres = require('../db')
+const {getAllUsers} = require("../services/user.service.js");
 const userController = {
-    getAll: async(req, res) => {
+    getAll: async (req, res) => {
         try {
-            const { rows } = await postgres.query("select * from books")
-            res.json({msg: "OK", data: rows})
+            const users = await getAllUsers();
+            res.json({ msg: "OK", data: users });
         } catch (error) {
-            res.json({msg: error.msg})
+            res.status(500).json({ msg: error.message });
         }
     },
     getById: async(req, res) => {

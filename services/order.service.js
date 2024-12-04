@@ -77,3 +77,39 @@ export async function deleteOrder(orderId) {
     if (error) throw error;
     return data;
 }
+export async function getAllOrders() {
+    try {
+        const { data, error } = await supabase
+            .from('order')
+            .select('*')
+            .gt('total', 0)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            throw new Error('Error fetching orders');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error fetching orders:', error.message);
+        return { error: error.message };
+    }
+}
+export async function getOrdersByUserId(userId) {
+    try {
+        const { data, error } = await supabase
+            .from('order')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            throw new Error('Error fetching orders for user');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Error fetching orders for user:', error.message);
+        return { error: error.message };
+    }
+}
