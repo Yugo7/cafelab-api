@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer';
-import fs from 'fs';
+import {promises as fs} from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { formatCurrency } from './utils.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-const logoHtml = fs.readFileSync(path.join(dirname, '../templates/email/header.html'), 'utf8');
-const footerHtml = fs.readFileSync(path.join(dirname, '../templates/email/footer.html'), 'utf8');
+const logoHtml = await fs.readFile(path.join(dirname, '../templates/email/header.html'), 'utf8');
+const footerHtml = await fs.readFile(path.join(dirname, '../templates/email/footer.html'), 'utf8');
 
 let transporter = nodemailer.createTransport({
     host: 'smtp-pt.securemail.pro', // replace with your SMTP server host
@@ -66,7 +66,7 @@ export async function sendOrderEmail(subject, customer, shipping, order) {
     const shippingDetailsHtml = await generateShippingDetailsHtml(shipping.details);
 
     const templatePath = path.join(dirname, '../templates/email/order-new.html');
-    const content = fs.readFileSync(templatePath, 'utf8');
+    const content = await fs.readFile(templatePath, 'utf8');
 
     const htmlContent = content.replace('{{products}}', productsHtml).replace('{{order_id}}', order.id).replace('{{total}}', formatCurrency(order.total)).replace('{{shipping}}', formatCurrency(shipping.cost.amount_total / 100.0)).replace('{{shipping_details}}', shippingDetailsHtml).replace('{{header}}', headerHtml);
 
@@ -85,7 +85,7 @@ export async function sendPasswordTokenEmail(token, email) {
 
     console.log('Token: ', token);
     const templatePath = path.join(dirname, '../templates/email/password-change.html');
-    const content = fs.readFileSync(templatePath, 'utf8');
+    const content = await fs.readFile(templatePath, 'utf8');
 
     const htmlContent = content.replace('{{resetLink}}', process.env.FRONTEND_URL + '/reset-password/' + token).replace('{{footer}}', footerHtml).replace('{{header}}', logoHtml);
 
