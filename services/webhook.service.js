@@ -3,6 +3,8 @@ import { sendOrderEmail } from './email.service.js';
 import { createGuestOrUpdateUser } from './user.service.js';
 import { updateOrder } from './order.service.js';
 import { getEventByEventTypeIdAndType } from './webhooks-events.service.js';
+import { downloadAndUploadPdf } from './../utils/download.service.js';
+import {getInvoice} from "./stripe.service.js";
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_KEY
@@ -55,7 +57,8 @@ async function handleCheckoutSessionCompleted(event) {
         const customer = eventData.customer_details
 
         const invoice = await getEventByEventTypeIdAndType(eventData.invoice, 'invoice.payment_succeeded')
-        console.log('invoice:', invoice[0].data.object.id);
+        const stripeInvoice = await getInvoice(invoice[0].data.object.id)
+        const pdfUrl = await downloadAndUploadPdf(stripeInvoice.invoice_pdf, eventData.metadata.order_id);
 
         const orderUpdateQuery = {
             status: 'PAYMENT_SUCCESSFUL',
@@ -63,7 +66,7 @@ async function handleCheckoutSessionCompleted(event) {
             user_id: eventData.customer_details.email,
             session_id: eventData.id,
             note: eventData.custom_fields[0].text.value,
-            receipt_url: invoice[0].data.object.invoice_pdf,
+            receipt_url: pdfUrl,
         }
 
         const { data: updatedOrder } = await updateOrder(eventData.metadata.order_id, orderUpdateQuery)
@@ -78,4 +81,9 @@ async function handleCheckoutSessionCompleted(event) {
         console.error('Error in webhook processing:', error);
         return { error: 'Error in webhook processing' };
     }
+}
+
+async function downloadPdf(url) {
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    return response.data;
 }

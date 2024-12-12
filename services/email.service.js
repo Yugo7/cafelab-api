@@ -639,7 +639,7 @@ let transporter = nodemailer.createTransport({
     }
 });
 
-async function generateProductsHtml(order) {
+function generateProductsHtml(order) {
     let productsHTML = '';
 
     for (let orderProduct of order.products) {

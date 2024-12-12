@@ -34,3 +34,41 @@ export async function cancelSubscription(query) {
         }
     );
 }
+
+export async function createStripeProduct(name, description, price, imageUrl) {
+    try {
+        const product = await stripe.products.create({
+            name: name,
+            description: description,
+            images: [imageUrl],
+        });
+        const productPrice = await createStripePrice(product.id, price)
+
+        return { product, productPrice };
+    } catch (error) {
+        console.error('Error creating Stripe product:', error.message);
+        throw error;
+    }
+}
+
+export async function createStripePrice(productId, price) {
+    try {
+        return await stripe.prices.create({
+            unit_amount: price * 100,
+            currency: 'eur',
+            product: productId,
+        });
+    } catch (error) {
+        console.error('Error creating Stripe price:', error.message);
+        throw error;
+    }
+}
+
+export async function getInvoice(invoiceId) {
+    try {
+        return await stripe.invoices.retrieve(invoiceId);
+    } catch (error) {
+        console.error('Error retrieving invoice:', error.message);
+        throw error;
+    }
+}
