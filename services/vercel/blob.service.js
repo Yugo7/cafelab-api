@@ -1,12 +1,12 @@
 import {put} from '@vercel/blob';
-import fs from 'fs';
 
 export const uploadBlob = async (blob) => {
     try {
         console.log('uploading blob...');
 
-        const promoImageFile = blob[0];
-        const result = await put(promoImageFile.originalname, promoImageFile.buffer, {
+        const imageFile = Array.isArray(blob) ? blob[0] : blob;
+        console.log('blob:', blob);
+        const result = await put(imageFile.originalname, imageFile.buffer, {
             access: 'public',
         });
 
@@ -18,3 +18,19 @@ export const uploadBlob = async (blob) => {
     }
 };
 
+
+export const uploadPdfToBlob = async (blobName, data) => {
+    try {
+        console.log('uploading pdf...');
+        console.log('blobName:', blobName);
+        console.log('data:', data);
+
+        const result = await put(blobName, data, {
+            access: 'public',
+        });
+        return result.url;
+    } catch (error) {
+        console.error(error.message);
+        throw new Error('Failed to upload blob: ' + error.message);
+    }
+};
