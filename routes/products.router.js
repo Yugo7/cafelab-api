@@ -1,11 +1,9 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import multer from 'multer';
 import { uploadBlob } from '../services/vercel/blob.service.js';
 import { createProduct, getProducts, getProductById, updateProduct, deleteProduct } from '../services/products.service.js';
 import { createStripeProduct } from '../services/stripe.service.js';
 
-dotenv.config();
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 4 * 1024 * 1024 }, // 4 MB limit
@@ -21,7 +19,7 @@ const upload = multer({
 const router = express.Router();
 
 router.get('/sections', (req, res) => {
-    const eventTypes = ['CAFE', 'BOUTIQUE'];
+    const eventTypes = ['CAFE', 'BOUTIQUE', 'VOUCHER'];
     return res.status(200).json(eventTypes);
 });
 

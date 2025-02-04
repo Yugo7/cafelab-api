@@ -1,8 +1,5 @@
 import axios from 'axios';
 import {uploadPdfToBlob} from '../services/vercel/blob.service.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 async function downloadPdf(url) {
     console.log('Downloading PDF from:', url);

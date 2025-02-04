@@ -1,5 +1,23 @@
 import dotenv from 'dotenv';
-dotenv.config();
+
+const env = process.env.NODE_ENV || 'development';
+console.log(`${env} environment`);
+let result;
+
+if (env === 'prod') {
+    result = dotenv.config({ path: '.env' });
+} else if (env === 'test') {
+    console.log('Using local environment');
+    result = dotenv.config();
+} else {
+    result = dotenv.config();
+}
+
+if (result.error) {
+    console.error(`Failed to load ${env} environment variables from ${result.error.path}`);
+} else {
+    console.log(`${env} environment variables loaded successfully`);
+}
 
 import cors from 'cors';
 import express from 'express';
@@ -14,6 +32,7 @@ import internalRoutes from './routes/internal.router.js';
 import userRouter from './routes/user.router.js';
 import webhooksRouter from "./routes/webhooks.router.js";
 import subscriptionRouter from "./routes/subscription.router.js";
+import adsRouter from "./routes/ads.router.js";
 
 const app = express();
 
@@ -43,8 +62,10 @@ app.use('/email', emailRouter);
 app.use('/api/webhooks', webhooksRouter);
 // Use stripe router
 app.use('/sp', stripeRouter);
-// Use stripe router
+// Use internal router
 app.use('/internal', internalRoutes);
+// Use stripe router
+app.use('/ads', adsRouter);
 
 app.get('/', async (req, res) => {
     res.send('Up!');

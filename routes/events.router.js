@@ -38,9 +38,9 @@ router.post('/', upload.fields([
             date: req.body.date,
             description: req.body.description,
             local: req.body.local,
-            imagePromotion: promoImage ? promoImage.url : null,
-            imageFinish: postImage ? postImage.url : null,
-            instagramUrl: req.body.instagramUrl
+            image_promotion: promoImage ? promoImage.url : null,
+            image_finish: postImage ? postImage.url : null,
+            instagram_url: req.body.instagramUrl
         };
 
         const { data, error } = await supabase
@@ -95,9 +95,9 @@ router.put('/:id', upload.fields([
             ...(req.body.date && { date: req.body.date }),
             ...(req.body.description && { description: req.body.description }),
             ...(req.body.local && { local: req.body.local }),
-            ...(promoImage && { imagePromotion: promoImage.url }),
-            ...(postImage && { imageFinish: postImage.url }),
-            ...(req.body.instagramUrl && { instagramUrl: req.body.instagramUrl })
+            ...(promoImage && { image_promotion: promoImage.url }),
+            ...(postImage && { image_finish: postImage.url }),
+            ...(req.body.instagramUrl && { instagram_url: req.body.instagramUrl })
         };
 
         console.log('Updating event with data:', eventData);

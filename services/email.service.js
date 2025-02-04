@@ -691,7 +691,7 @@ export async function sendOrderEmail(subject, customer, shipping, order) {
     const htmlContent = content.replace('{{products}}', productsHtml).replace('{{order_id}}', order.id).replace('{{total}}', formatCurrency(order.total)).replace('{{shipping}}', formatCurrency(shipping.cost.amount_total / 100.0)).replace('{{shipping_details}}', shippingDetailsHtml).replace('{{header}}', headerHtml);
 
     let info = await transporter.sendMail({
-        from: '"CafeLab PT" <atendimentocafelab@yuna.pt>',
+        from: '"CafeLab PT" <atendimentocafelab@cafelab.pt>',
         to: customer.email,
         subject: subject,
         html: htmlContent
@@ -738,7 +738,7 @@ export async function sendPasswordTokenEmail(token, email) {
     const htmlContent = content.replace('{{resetLink}}', process.env.FRONTEND_URL + '/reset-password/' + token).replace('{{footer}}', footerHtml).replace('{{header}}', logoHtml);
 
     let info = await transporter.sendMail({
-        from: '"CafeLab PT" <cafelab@yuna.pt>',
+        from: '"CafeLab PT" <atendimento@cafelab.pt>',
         to: email,
         subject: "Alteração da palavra-passe",
         html: htmlContent

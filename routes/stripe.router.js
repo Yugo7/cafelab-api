@@ -1,7 +1,7 @@
 import express from 'express';
 import Stripe from 'stripe';
 import { createClient } from "@supabase/supabase-js";
-import { getSubscriptionById } from "../services/products.service.js";
+import { getSubscriptionById } from "../services/subscription.service.js";
 import { createOrder } from "../services/order.service.js";
 import { createStripeCustomer } from "../services/stripe.service.js";
 
@@ -9,7 +9,7 @@ const router = express.Router();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const frontendUrl = 'https://cafelab.pt/';
+const frontendUrl = process.env.FRONTEND_URL;
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -24,6 +24,7 @@ router.post("/create-customer", async (req, res) => {
 
 router.post("/create-checkout-session", async (req, res) => {
     console.log('session body:', req.body);
+    console.log('frontend url:', frontendUrl);
     const user = req.body.user;
     const date = new Date();
     date.setMonth(date.getMonth() + 7);
@@ -101,6 +102,7 @@ router.post("/create-checkout-session", async (req, res) => {
 
 router.post("/create-checkout", async (req, res) => {
 
+    console.log('frontend url:', frontendUrl);
     console.log(req.body)
     const user = req.body.cart.user;
     const cart = req.body.cart;
@@ -110,7 +112,8 @@ router.post("/create-checkout", async (req, res) => {
 
     const productDetails = order.products.map((product) => {
         return {
-            price: product.price_id,
+            //price: product.price_id,
+            price: "price_1QodX7RqqMn2mwDSf7dfh0Ig",
             quantity: product.quantity
         };
     });
@@ -133,13 +136,21 @@ router.post("/create-checkout", async (req, res) => {
         line_items: productDetails,
         mode: 'payment',
         billing_address_collection: 'required',
-        shipping_address_collection: {
-            allowed_countries: ['PT']
-        },
         metadata: {
             order_id: order.id,
         },
-        shipping_options: [
+        locale: 'pt',
+        invoice_creation: {
+            enabled: true,
+        },
+    };
+
+    if (user) {
+        sessionConfig.customer_email = user.username;
+    }
+
+    if (!order.products.every(product => product.secao === 'VOUCHER')) {
+        sessionConfig.shipping_options = [
             {
                 shipping_rate_data: {
                     type: 'fixed_amount',
@@ -160,15 +171,11 @@ router.post("/create-checkout", async (req, res) => {
                     },
                 },
             },
-        ],
-        locale: 'pt',
-        invoice_creation: {
-            enabled: true,
-        },
-    };
+        ]
 
-    if (user) {
-        sessionConfig.customer_email = user.username;
+        sessionConfig.shipping_address_collection = {
+            allowed_countries: ['PT']
+        }
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);

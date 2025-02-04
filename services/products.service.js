@@ -4,15 +4,6 @@ import {getSupabaseClient} from "../utils/supabase.js";
 
 const supabase = getSupabaseClient();
 
-export async function getSubscriptionById(id) {
-    const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('id', id);
-    if (error) throw error;
-
-    return data[0];
-}
 
 export async function getProducts() {
     const { data, error } = await supabase
@@ -73,8 +64,9 @@ export async function updateProduct(id, productData) {
     }
 
     // Check if the price has changed
-    if (productData.preco && productData.preco !== currentProduct.preco) {
+    if (productData.preco && parseFloat(productData.preco) !== currentProduct.preco) {
         // Create a new price on Stripe
+        console.log('Creating new price on Stripe for product:', currentProduct.nome_en);
         const stripeProduct = await createStripeProduct(
             currentProduct.nome_en,
             currentProduct.descricao_en,

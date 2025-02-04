@@ -37,6 +37,7 @@ router.post('/change-password/:token', async (req, res) => {
 // Sign In
 router.post('/signin', async (req, res) => {
     const { email, password } = req.body;
+    console.log('email:', email, 'password:', password);
     const { token, error } = await signInUser(email, password);
     if (error) return res.status(500).json({ error: error.message });
     return res.status(200).json(token);

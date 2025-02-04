@@ -38,6 +38,8 @@ export async function handleEventByType(event) {
     switch (type) {
         case 'checkout.session.completed':
             return handleCheckoutSessionCompleted(event);
+        case 'customer.subscription.updated':
+            return handleSubscriptionUpdate(event);
         default:
             console.log(`Unhandled event type: ${type} id: ${event.id}`);
             return { error: `Unhandled event type: ${type} id: ${event.id}` };
@@ -56,9 +58,9 @@ async function handleCheckoutSessionCompleted(event) {
         }
         const customer = eventData.customer_details
 
-        const invoice = await getEventByEventTypeIdAndType(eventData.invoice, 'invoice.payment_succeeded')
-        const stripeInvoice = await getInvoice(invoice[0].data.object.id)
-        const pdfUrl = await downloadAndUploadPdf(stripeInvoice.invoice_pdf, eventData.metadata.order_id);
+        //const invoice = await getEventByEventTypeIdAndType(eventData.invoice, 'invoice.payment_succeeded')
+        //const stripeInvoice = await getInvoice(eventData.invoice)
+        //const pdfUrl = await downloadAndUploadPdf(stripeInvoice.invoice_pdf, eventData.metadata.order_id);
 
         const orderUpdateQuery = {
             status: 'PAYMENT_SUCCESSFUL',
@@ -66,7 +68,7 @@ async function handleCheckoutSessionCompleted(event) {
             user_id: eventData.customer_details.email,
             session_id: eventData.id,
             note: eventData.custom_fields[0].text.value,
-            receipt_url: pdfUrl,
+            receipt_url: "pdfUrl",
         }
 
         const { data: updatedOrder } = await updateOrder(eventData.metadata.order_id, orderUpdateQuery)
@@ -80,6 +82,32 @@ async function handleCheckoutSessionCompleted(event) {
     } catch (error) {
         console.error('Error in webhook processing:', error);
         return { error: 'Error in webhook processing' };
+    }
+}
+
+async function handleSubscriptionUpdate(event) {
+    try {
+        console.log('Handling subscription event:', event.type);
+
+        const eventData = event.data.object;
+
+        const subscriptionUpdateQuery = {
+            status: eventData.status,
+            current_period_end: new Date(eventData.current_period_end * 1000),
+            current_period_start: new Date(eventData.current_period_start * 1000),
+            customer_id: eventData.customer,
+            plan_id: eventData.plan.id,
+        };
+
+        const { data: updatedSubscription } = await updateSubscription(eventData.id, subscriptionUpdateQuery);
+
+        await sendSubscriptionEmail('Subscription Update', eventData.customer_email, updatedSubscription);
+        console.log('Subscription updated successfully:', eventData.id);
+
+        return { data: 'Subscription updated successfully' };
+    } catch (error) {
+        console.error('Error in subscription update processing:', error);
+        return { error: 'Error in subscription update processing' };
     }
 }
 
