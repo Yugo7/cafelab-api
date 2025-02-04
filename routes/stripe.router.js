@@ -112,8 +112,7 @@ router.post("/create-checkout", async (req, res) => {
 
     const productDetails = order.products.map((product) => {
         return {
-            //price: product.price_id,
-            price: "price_1QodX7RqqMn2mwDSf7dfh0Ig",
+            price: product.price_id,
             quantity: product.quantity
         };
     });
