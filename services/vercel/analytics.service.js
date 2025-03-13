@@ -13,7 +13,7 @@ export const fetchAnalyticsData = async (start, end) => {
     try {
         console.log('Fetching analytics data...');
         let { data, error } = await supabaseClient
-            .from('analytcs')
+            .from('analytics')
             .select('date, accesses, visitors')
             .gte('date', start)
             .lte('date', end);
